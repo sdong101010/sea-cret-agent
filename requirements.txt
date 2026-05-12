@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+websockets
+sounddevice
+numpy
+faster-whisper
+resemblyzer
+ddgs
+httpx
+python-dotenv

@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meeting Copilot</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="topbar-left">
+        <div class="logo-mark"></div>
+        <h1>Meeting Copilot</h1>
+      </div>
+      <div class="topbar-right">
+        <span class="connection-dot" id="connectionDot"></span>
+        <button class="btn btn-subtle" id="calibrateBtn" title="Calibrate your voice so the copilot can identify you" disabled>Calibrate Voice</button>
+        <button class="btn btn-primary" id="sessionBtn">Start Session</button>
+      </div>
+    </header>
+
+    <div class="panels">
+      <section class="panel panel-transcript">
+        <div class="panel-header">
+          <h2>Live Transcript</h2>
+          <span class="badge" id="transcriptTimer">00:00</span>
+        </div>
+        <div class="transcript-feed" id="transcriptFeed">
+          <div class="empty-state">
+            <p>Waiting for audio...</p>
+            <p class="hint">Start a session, then speak or play meeting audio through BlackHole.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel panel-answers">
+        <div class="panel-header">
+          <h2>Detected Q&A</h2>
+          <span class="badge" id="questionCount">0</span>
+        </div>
+        <div class="answers-feed" id="answersFeed">
+          <div class="empty-state">
+            <p>No questions detected yet</p>
+            <p class="hint">Questions from the customer will appear here with suggested answers.</p>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div class="summary-overlay" id="summaryOverlay">
+      <div class="summary-modal">
+        <div class="summary-header">
+          <h2>Meeting Summary</h2>
+          <button class="btn btn-subtle" id="closeSummary">Close</button>
+        </div>
+        <div class="summary-content" id="summaryContent"></div>
+        <div class="summary-actions">
+          <button class="btn btn-primary" id="copySummary">Copy to Clipboard</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
