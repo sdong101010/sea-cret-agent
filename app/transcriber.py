@@ -91,6 +91,10 @@ class Transcriber:
         # the offset model consistent with the old implementation.
         self._total_processed: float = 0.0
 
+        # Set in initialize() if config.WHISPER_ENABLED. Stays None for the
+        # disabled / fallback path so wait_whisper_final and flush_whisper become no-ops.
+        self._whisper_worker = None
+
     async def initialize(self):
         """Build the sidecar if needed and spawn it."""
         self._loop = asyncio.get_running_loop()
@@ -268,6 +272,31 @@ class Transcriber:
             self._rolling_mic = np.zeros(0, dtype=np.float32)
             self._rolling_system = np.zeros(0, dtype=np.float32)
         self._total_processed = 0.0
+
+    async def wait_whisper_final(self, segs: list["TranscriptSegment"], timeout: float):
+        """Wait until every segment in `segs` has whisper_final=True, or `timeout` elapses.
+
+        Returns silently in either case — caller proceeds with whatever text is final.
+        """
+        deadline = time.monotonic() + timeout
+        for s in segs:
+            if s.whisper_final:
+                continue
+            remaining = max(0.0, deadline - time.monotonic())
+            try:
+                await asyncio.wait_for(s.whisper_event.wait(), timeout=remaining)
+            except asyncio.TimeoutError:
+                logger.info(
+                    "wait_whisper_final timed out with %d unfinal segs remaining",
+                    sum(1 for x in segs if not x.whisper_final),
+                )
+                return
+
+    async def flush_whisper(self, timeout: float):
+        """Drain the whisper worker queue. Called at end-of-session before summary generation."""
+        if self._whisper_worker is None:
+            return
+        await self._whisper_worker.flush(timeout=timeout)
 
     def shutdown(self):
         """Cleanly stop the sidecar process."""
