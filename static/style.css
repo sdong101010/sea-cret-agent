@@ -126,17 +126,6 @@ html, body {
   color: var(--text);
 }
 
-.btn-subtle.calibrated {
-  border-color: var(--accent);
-  color: var(--accent);
-}
-
-.btn-subtle.calibrating {
-  border-color: var(--question);
-  color: var(--question);
-  animation: pulse 1s ease-in-out infinite;
-}
-
 /* --- Panels --- */
 .panels {
   flex: 1;
@@ -230,15 +219,38 @@ html, body {
   vertical-align: middle;
 }
 
-.speaker-tag.speaker-you {
+.speaker-tag.speaker-me {
   background: rgba(99, 102, 241, 0.15);
   color: #818cf8;
 }
 
-.speaker-tag.speaker-other {
+/* Default for any remote speaker -- per-speaker hue variations come below. */
+.speaker-tag {
   background: var(--accent-dim);
   color: var(--accent);
 }
+
+.speaker-tag.renameable {
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: border-color 0.15s ease;
+}
+
+.speaker-tag.renameable:hover {
+  border-color: currentColor;
+}
+
+/* Stable color rotation for "Speaker 1", "Speaker 2", ... so repeated
+   speakers stay visually distinct in the transcript. Renamed speakers fall
+   through to the default green. */
+.speaker-tag.speaker-speaker-1 { background: rgba(110, 231, 183, 0.12); color: #6ee7b7; }
+.speaker-tag.speaker-speaker-2 { background: rgba(252, 165, 165, 0.14); color: #fca5a5; }
+.speaker-tag.speaker-speaker-3 { background: rgba(147, 197, 253, 0.14); color: #93c5fd; }
+.speaker-tag.speaker-speaker-4 { background: rgba(252, 211, 77, 0.14); color: #fcd34d; }
+.speaker-tag.speaker-speaker-5 { background: rgba(196, 181, 253, 0.14); color: #c4b5fd; }
+.speaker-tag.speaker-speaker-6 { background: rgba(244, 114, 182, 0.14); color: #f472b6; }
+.speaker-tag.speaker-speaker-7 { background: rgba(45, 212, 191, 0.14); color: #2dd4bf; }
+.speaker-tag.speaker-speaker-8 { background: rgba(251, 146, 60, 0.14); color: #fb923c; }
 
 .transcript-line.has-question {
   background: var(--question-dim);
@@ -513,7 +525,19 @@ html, body {
   border-top: 1px solid var(--border-subtle);
   display: flex;
   justify-content: flex-end;
+  gap: 8px;
 }
+
+.google-doc-result {
+  padding: 0 20px 12px;
+  font-size: 13px;
+  min-height: 1em;
+}
+
+.google-doc-result.pending { color: var(--text-muted); }
+.google-doc-result.success { color: var(--accent); }
+.google-doc-result.success a { color: var(--accent); text-decoration: underline; }
+.google-doc-result.error { color: var(--danger); }
 
 /* --- Animations --- */
 @keyframes fadeSlideIn {
@@ -534,4 +558,100 @@ html, body {
 
 .searching-indicator {
   animation: pulse 1.5s ease-in-out infinite;
+}
+
+/* --- Past meeting banner (shown when reopening a saved meeting) --- */
+.past-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 20px;
+  background: rgba(251, 191, 36, 0.08);
+  border-bottom: 1px solid rgba(251, 191, 36, 0.25);
+  flex-shrink: 0;
+}
+.past-banner[hidden] { display: none; }
+.past-banner-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.past-banner-eyebrow {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--question);
+}
+.past-banner-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.past-banner-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* --- Past Meetings dropdown --- */
+.past-sessions { position: relative; }
+.past-sessions-menu {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  min-width: 320px;
+  max-width: 420px;
+  max-height: 60vh;
+  overflow-y: auto;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+  z-index: 50;
+  padding: 4px;
+}
+.past-session-item {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-radius: 4px;
+  padding: 8px 10px;
+  cursor: pointer;
+  font-family: var(--font);
+  color: var(--text);
+  font-size: 13px;
+}
+.past-session-item:hover {
+  background: var(--bg-card-hover);
+}
+.past-session-when {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 11px;
+  color: var(--text-muted);
+  letter-spacing: 0.04em;
+  flex-shrink: 0;
+}
+.past-session-title {
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.past-sessions-loading,
+.past-sessions-empty {
+  padding: 16px 12px;
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
 }

@@ -1,14 +1,14 @@
-# Meeting Copilot
+# Sea-cret Agent
 
-A local meeting assistant that captures system audio from MS Teams / Google Meet calls, transcribes in real-time, detects customer questions via Gemini, and researches answers from the web. Speaker diarization separates "You" from other speakers so only customer questions are surfaced.
+A local meeting assistant that captures system audio from MS Teams / Google Meet calls, transcribes in real-time, detects questions via Claude, and researches answers using Slack MCP and the public web. Speaker labels separate "Me" (mic) from remote participants ("Speaker 1", "Speaker 2", ...).
 
 ## How It Works
 
 1. **BlackHole** captures system audio (what you hear in the meeting)
-2. **faster-whisper** transcribes speech to text locally
-3. **Gemini** detects customer questions from the transcript
+2. **Apple SpeechAnalyzer** (macOS 26+) transcribes speech to text on-device via a Swift sidecar binary
+3. **Claude** detects customer questions from the transcript
 4. **Web search** finds relevant Salesforce docs and pages
-5. **Gemini** synthesizes a concise answer from the web research
+5. **Claude** synthesizes a concise answer from the web research
 6. A browser-based sidebar shows the live transcript and Q&A cards on your second monitor
 
 ## Prerequisites
@@ -32,14 +32,18 @@ This lets you hear the meeting audio AND capture it simultaneously.
 brew install portaudio
 ```
 
-### 3. Gemini API Key
+### 3. Claude (Salesforce AI Model Gateway)
 
-Get a free key from https://aistudio.google.com/apikey — this powers question detection, answer generation, and meeting summaries.
+The app expects `ANTHROPIC_AUTH_TOKEN` and `ANTHROPIC_BEDROCK_BASE_URL` to be set in your environment (these are typically already configured globally if you use Claude Code). Override the model with `ANTHROPIC_MODEL` if needed (defaults to `claude-opus-4-7`).
+
+### 4. macOS 26+ (Tahoe)
+
+The transcription sidecar uses Apple's `SpeechAnalyzer` API which requires macOS 26 or newer. The Swift binary builds automatically on first run; you can also build it manually with `bin/build_sidecar.sh`.
 
 ## Setup
 
 ```bash
-cd meeting-copilot
+cd sea-cret-agent
 
 # Create virtual environment with Python 3.13
 python3.13 -m venv .venv
@@ -78,9 +82,9 @@ Edit `.env` to customize:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `GEMINI_API_KEY` | (required) | From https://aistudio.google.com/apikey |
-| `GEMINI_MODEL` | `gemini-2.5-flash` | Gemini model for Q&A and detection |
+| `ANTHROPIC_AUTH_TOKEN` | (inherited) | Bearer token for the Salesforce AI Model Gateway |
+| `ANTHROPIC_BEDROCK_BASE_URL` | (inherited) | Gateway base URL |
+| `ANTHROPIC_MODEL` | `claude-opus-4-7` | Claude model for detection, answers, summaries |
 | `AUDIO_DEVICE` | `BlackHole` | Audio input device name |
 | `MIC_DEVICE` | (auto) | Microphone device for voice calibration |
-| `WHISPER_MODEL_SIZE` | `small` | Whisper model: tiny, base, small, medium, large-v3 |
 | `QUESTION_CONFIDENCE_THRESHOLD` | `0.6` | Min confidence to surface a question (0.0-1.0) |

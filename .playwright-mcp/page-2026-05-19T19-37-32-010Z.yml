@@ -1,0 +1,77 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - heading "Sea-cret Agent" [level=1] [ref=e6]
+    - generic [ref=e7]:
+      - generic [ref=e9]:
+        - button "Past Meetings" [active] [ref=e10] [cursor=pointer]
+        - generic [ref=e29]:
+          - button "2026-05-19 13:05 Meeting 2026-05-19 1305" [ref=e30] [cursor=pointer]:
+            - generic [ref=e31]: 2026-05-19 13:05
+            - generic [ref=e32]: Meeting 2026-05-19 1305
+          - button "2026-05-19 11:01 Meeting 2026-05-19 1101" [ref=e33] [cursor=pointer]:
+            - generic [ref=e34]: 2026-05-19 11:01
+            - generic [ref=e35]: Meeting 2026-05-19 1101
+          - button "2026-05-19 09:10 Meeting 2026-05-19 0910" [ref=e36] [cursor=pointer]:
+            - generic [ref=e37]: 2026-05-19 09:10
+            - generic [ref=e38]: Meeting 2026-05-19 0910
+          - button "2026-05-19 08:48 Meeting 2026-05-19 0848" [ref=e39] [cursor=pointer]:
+            - generic [ref=e40]: 2026-05-19 08:48
+            - generic [ref=e41]: Meeting 2026-05-19 0848
+          - button "2026-05-19 08:41 Meeting 2026-05-19 0841" [ref=e42] [cursor=pointer]:
+            - generic [ref=e43]: 2026-05-19 08:41
+            - generic [ref=e44]: Meeting 2026-05-19 0841
+          - button "2026-05-19 08:40 Meeting 2026-05-19 0840" [ref=e45] [cursor=pointer]:
+            - generic [ref=e46]: 2026-05-19 08:40
+            - generic [ref=e47]: Meeting 2026-05-19 0840
+          - button "2026-05-19 08:29 Meeting 2026-05-19 0829" [ref=e48] [cursor=pointer]:
+            - generic [ref=e49]: 2026-05-19 08:29
+            - generic [ref=e50]: Meeting 2026-05-19 0829
+          - button "2026-05-19 07:33 Meeting 2026-05-19 0733" [ref=e51] [cursor=pointer]:
+            - generic [ref=e52]: 2026-05-19 07:33
+            - generic [ref=e53]: Meeting 2026-05-19 0733
+          - button "2026-04-21 12:12 Meeting 2026-04-21 1212" [ref=e54] [cursor=pointer]:
+            - generic [ref=e55]: 2026-04-21 12:12
+            - generic [ref=e56]: Meeting 2026-04-21 1212
+          - button "2026-04-21 12:09 Meeting 2026-04-21 1209" [ref=e57] [cursor=pointer]:
+            - generic [ref=e58]: 2026-04-21 12:09
+            - generic [ref=e59]: Meeting 2026-04-21 1209
+          - button "2026-04-21 12:05 Meeting 2026-04-21 1205" [ref=e60] [cursor=pointer]:
+            - generic [ref=e61]: 2026-04-21 12:05
+            - generic [ref=e62]: Meeting 2026-04-21 1205
+          - button "2026-04-21 11:43 Meeting 2026-04-21 1143" [ref=e63] [cursor=pointer]:
+            - generic [ref=e64]: 2026-04-21 11:43
+            - generic [ref=e65]: Meeting 2026-04-21 1143
+          - button "2026-04-21 11:37 Meeting 2026-04-21 1137" [ref=e66] [cursor=pointer]:
+            - generic [ref=e67]: 2026-04-21 11:37
+            - generic [ref=e68]: Meeting 2026-04-21 1137
+          - button "2026-04-21 11:22 Meeting 2026-04-21 1122" [ref=e69] [cursor=pointer]:
+            - generic [ref=e70]: 2026-04-21 11:22
+            - generic [ref=e71]: Meeting 2026-04-21 1122
+          - button "2026-04-21 11:19 Meeting 2026-04-21 1119" [ref=e72] [cursor=pointer]:
+            - generic [ref=e73]: 2026-04-21 11:19
+            - generic [ref=e74]: Meeting 2026-04-21 1119
+          - button "2026-04-21 10:06 Meeting 2026-04-21 1006" [ref=e75] [cursor=pointer]:
+            - generic [ref=e76]: 2026-04-21 10:06
+            - generic [ref=e77]: Meeting 2026-04-21 1006
+          - button "2026-04-21 09:38 Meeting 2026-04-21 0938" [ref=e78] [cursor=pointer]:
+            - generic [ref=e79]: 2026-04-21 09:38
+            - generic [ref=e80]: Meeting 2026-04-21 0938
+          - button "2026-04-20 16:25 Meeting 2026-04-20 1625" [ref=e81] [cursor=pointer]:
+            - generic [ref=e82]: 2026-04-20 16:25
+            - generic [ref=e83]: Meeting 2026-04-20 1625
+      - button "Start Session" [ref=e11] [cursor=pointer]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - heading "Live Transcript" [level=2] [ref=e15]
+        - generic [ref=e16]: 00:00
+      - generic [ref=e18]:
+        - paragraph [ref=e19]: Waiting for audio...
+        - paragraph [ref=e20]: Start a session, then speak or play meeting audio through BlackHole. Click any speaker label to rename them (e.g. "Speaker 1" -> "Mike").
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - heading "Detected Q&A" [level=2] [ref=e23]
+        - generic [ref=e24]: "0"
+      - generic [ref=e26]:
+        - paragraph [ref=e27]: No questions detected yet
+        - paragraph [ref=e28]: Questions from the customer will appear here with suggested answers.

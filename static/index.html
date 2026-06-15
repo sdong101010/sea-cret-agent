@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Meeting Copilot</title>
+  <title>Sea-cret Agent</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -14,14 +14,28 @@
     <header class="topbar">
       <div class="topbar-left">
         <div class="logo-mark"></div>
-        <h1>Meeting Copilot</h1>
+        <h1>Sea-cret Agent</h1>
       </div>
       <div class="topbar-right">
         <span class="connection-dot" id="connectionDot"></span>
-        <button class="btn btn-subtle" id="calibrateBtn" title="Calibrate your voice so the copilot can identify you" disabled>Calibrate Voice</button>
+        <div class="past-sessions">
+          <button class="btn btn-subtle" id="pastSessionsBtn" title="Reopen a past meeting">Past Meetings</button>
+          <div class="past-sessions-menu" id="pastSessionsMenu" hidden></div>
+        </div>
         <button class="btn btn-primary" id="sessionBtn">Start Session</button>
       </div>
     </header>
+
+    <div class="past-banner" id="pastBanner" hidden>
+      <div class="past-banner-info">
+        <span class="past-banner-eyebrow">Viewing past meeting</span>
+        <span class="past-banner-title" id="pastBannerTitle"></span>
+      </div>
+      <div class="past-banner-actions">
+        <button class="btn btn-subtle" id="pastBannerSummary">Show Summary</button>
+        <button class="btn btn-subtle" id="pastBannerExit">Exit</button>
+      </div>
+    </div>
 
     <div class="panels">
       <section class="panel panel-transcript">
@@ -32,7 +46,7 @@
         <div class="transcript-feed" id="transcriptFeed">
           <div class="empty-state">
             <p>Waiting for audio...</p>
-            <p class="hint">Start a session, then speak or play meeting audio through BlackHole.</p>
+            <p class="hint">Start a session, then speak or play meeting audio through BlackHole. Click any speaker label to rename them (e.g. "Speaker 1" -> "Mike").</p>
           </div>
         </div>
       </section>
@@ -59,8 +73,10 @@
         </div>
         <div class="summary-content" id="summaryContent"></div>
         <div class="summary-actions">
-          <button class="btn btn-primary" id="copySummary">Copy to Clipboard</button>
+          <button class="btn btn-subtle" id="copySummary">Copy to Clipboard</button>
+          <button class="btn btn-primary" id="createGoogleDoc">Create Google Doc</button>
         </div>
+        <div class="google-doc-result" id="googleDocResult"></div>
       </div>
     </div>
   </div>

@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sea-cret Agent — Architecture</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Sohne:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --paper: #f5efe4;
+    --paper-deep: #ebe2d2;
+    --ink: #181612;
+    --ink-soft: #4a443c;
+    --ink-faint: #7d7567;
+    --rule: #d8cdb9;
+    --coral: #e8533a;
+    --coral-deep: #c63f28;
+    --ocean: #1f4659;
+    --moss: #4f6b3a;
+    --gold: #b9882c;
+    --plum: #6e3a4d;
+    --shadow: 0 1px 0 rgba(24, 22, 18, 0.04), 0 8px 24px -12px rgba(24, 22, 18, 0.08);
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background:
+      radial-gradient(ellipse at 12% 8%, rgba(232, 83, 58, 0.06), transparent 45%),
+      radial-gradient(ellipse at 88% 95%, rgba(31, 70, 89, 0.05), transparent 50%),
+      var(--paper);
+    color: var(--ink);
+    font-family: "Inter", -apple-system, sans-serif;
+    font-feature-settings: "ss01", "cv11", "kern";
+    line-height: 1.55;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+  /* Subtle paper grain */
+  body::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 100;
+    opacity: 0.35;
+    mix-blend-mode: multiply;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+  }
+
+  .page { max-width: 1240px; margin: 0 auto; padding: 56px 48px 96px; position: relative; }
+
+  /* Top eyebrow row */
+  .eyebrow {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 11px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    border-bottom: 1px solid var(--rule);
+    padding-bottom: 14px;
+    margin-bottom: 36px;
+  }
+  .eyebrow .right { display: flex; gap: 24px; }
+  .eyebrow .dot {
+    display: inline-block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--coral);
+    margin-right: 8px;
+    transform: translateY(-1px);
+  }
+
+  /* Masthead */
+  .masthead {
+    display: grid;
+    grid-template-columns: 1.55fr 1fr;
+    gap: 64px;
+    align-items: end;
+    margin-bottom: 48px;
+  }
+  h1 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 144, "SOFT" 50;
+    font-weight: 380;
+    font-size: clamp(64px, 8.4vw, 124px);
+    line-height: 0.92;
+    letter-spacing: -0.035em;
+    margin: 0;
+    color: var(--ink);
+  }
+  h1 em {
+    font-style: italic;
+    font-variation-settings: "opsz" 144, "SOFT" 100;
+    font-weight: 360;
+    color: var(--coral);
+  }
+  .deck {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 14;
+    font-weight: 400;
+    font-size: 18px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    border-left: 2px solid var(--coral);
+    padding: 4px 0 4px 20px;
+    max-width: 420px;
+  }
+
+  /* Section labels */
+  .section-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin: 56px 0 20px;
+  }
+  .section-label::before {
+    content: "";
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--coral);
+  }
+  .section-label::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: var(--rule);
+  }
+
+  /* Diagram */
+  .diagram-frame {
+    background:
+      linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.15)),
+      var(--paper-deep);
+    border: 1px solid var(--rule);
+    border-radius: 4px;
+    padding: 56px 48px 48px;
+    position: relative;
+    overflow: hidden;
+    box-shadow: var(--shadow);
+  }
+  .diagram-frame::before {
+    content: "FIG. 01";
+    position: absolute;
+    top: 16px;
+    right: 18px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-faint);
+  }
+  .diagram-frame::after {
+    content: "PIPELINE";
+    position: absolute;
+    top: 16px;
+    left: 18px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    color: var(--ink-faint);
+  }
+  svg.arch { width: 100%; height: auto; display: block; }
+
+  /* Diagram type styles applied inside SVG */
+  .node-rect { fill: #fdfcf8; stroke-width: 1.5; }
+  .node-rect.capture { stroke: var(--ocean); }
+  .node-rect.local   { stroke: var(--moss); }
+  .node-rect.brain   { stroke: var(--coral); stroke-width: 2.5; fill: #fff7f0; }
+  .node-rect.ext     { stroke: var(--plum); }
+  .node-rect.ui      { stroke: var(--gold); }
+  .node-title {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 18;
+    font-weight: 500;
+    font-size: 15px;
+    fill: var(--ink);
+  }
+  .node-sub {
+    font-family: "Inter", sans-serif;
+    font-weight: 400;
+    font-size: 11px;
+    fill: var(--ink-soft);
+    letter-spacing: 0.01em;
+  }
+  .node-tag {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+  }
+  .node-tag.capture { fill: var(--ocean); }
+  .node-tag.local   { fill: var(--moss); }
+  .node-tag.brain   { fill: var(--coral-deep); }
+  .node-tag.ext     { fill: var(--plum); }
+  .node-tag.ui      { fill: var(--gold); }
+
+  /* The trust boundary. A dashed container wraps everything running locally;
+     anything outside it crosses the network. The label sits on the top edge
+     and "punches through" it via paint-order stroke. */
+  .container-rect {
+    fill: rgba(79, 107, 58, 0.035);
+    stroke: var(--moss);
+    stroke-width: 1.2;
+    stroke-dasharray: 5 4;
+    opacity: 0.9;
+  }
+  .container-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    fill: var(--moss);
+    paint-order: stroke;
+    stroke: var(--paper-deep);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+  .container-sub {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 14;
+    font-size: 12px;
+    fill: var(--ink-faint);
+    paint-order: stroke;
+    stroke: var(--paper-deep);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+  /* Dual-stream indicator inside the audio node */
+  .stream-pip {
+    fill: var(--ocean);
+  }
+  .stream-pip-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9px;
+    letter-spacing: 0.08em;
+    fill: var(--ocean);
+    text-transform: uppercase;
+  }
+
+  .edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.4; }
+  .edge.dashed { stroke-dasharray: 4 4; stroke: var(--ink-faint); }
+  .edge.coral  { stroke: var(--coral); stroke-width: 1.6; }
+  .edge-label {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.06em;
+    fill: var(--ink-soft);
+    paint-order: stroke;
+    stroke: var(--paper-deep);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+  .edge-num {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-weight: 500;
+    font-size: 14px;
+    fill: var(--coral-deep);
+    paint-order: stroke;
+    stroke: var(--paper-deep);
+    stroke-width: 4px;
+    stroke-linejoin: round;
+  }
+
+  /* Legend */
+  .legend {
+    display: flex;
+    gap: 28px;
+    flex-wrap: wrap;
+    margin-top: 24px;
+    padding-top: 18px;
+    border-top: 1px dashed var(--rule);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+  .legend span { display: inline-flex; align-items: center; gap: 8px; }
+  .legend i {
+    display: inline-block;
+    width: 14px;
+    height: 14px;
+    border: 1.5px solid;
+    border-radius: 2px;
+    background: #fdfcf8;
+  }
+  .legend i.brain { background: #fff7f0; border-width: 2.5px; }
+
+  /* Tools section: editorial 2-column, asymmetric */
+  .tools {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    gap: 0 32px;
+    margin-top: 12px;
+    border-top: 1px solid var(--ink);
+  }
+  .tool {
+    grid-column: span 6;
+    border-bottom: 1px solid var(--rule);
+    padding: 24px 0 22px;
+    display: grid;
+    grid-template-columns: 38px 1fr;
+    gap: 18px;
+    position: relative;
+  }
+  .tool .num {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-weight: 400;
+    font-size: 22px;
+    color: var(--coral);
+    line-height: 1;
+    padding-top: 4px;
+  }
+  .tool h3 {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 30;
+    font-weight: 500;
+    font-size: 22px;
+    line-height: 1.1;
+    margin: 0 0 4px;
+    letter-spacing: -0.012em;
+  }
+  .tool .where {
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+    margin-bottom: 12px;
+  }
+  .tool .role {
+    font-size: 14.5px;
+    line-height: 1.55;
+    color: var(--ink);
+    margin: 0 0 10px;
+  }
+  .tool .why {
+    font-family: "Fraunces", serif;
+    font-style: italic;
+    font-variation-settings: "opsz" 14;
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--ink-soft);
+    margin: 0;
+  }
+  .tool .why::before {
+    content: "Why it matters — ";
+    font-style: normal;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 9.5px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--coral-deep);
+    margin-right: 4px;
+  }
+
+  /* Pitch block */
+  .pitch {
+    margin-top: 56px;
+    padding: 36px 40px 40px;
+    background: var(--ink);
+    color: var(--paper);
+    border-radius: 4px;
+    position: relative;
+    overflow: hidden;
+  }
+  .pitch::before {
+    content: "30-SECOND PITCH";
+    position: absolute;
+    top: 18px;
+    left: 40px;
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: var(--coral);
+  }
+  .pitch p {
+    font-family: "Fraunces", serif;
+    font-variation-settings: "opsz" 30;
+    font-weight: 380;
+    font-size: 22px;
+    line-height: 1.45;
+    margin: 22px 0 0;
+    letter-spacing: -0.005em;
+  }
+  .pitch p em {
+    font-style: italic;
+    color: #ffd9ce;
+  }
+  .pitch p strong {
+    font-weight: 500;
+    color: var(--coral);
+  }
+
+  /* Colophon */
+  .colophon {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 48px;
+    padding-top: 16px;
+    border-top: 1px solid var(--rule);
+    font-family: "JetBrains Mono", monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: var(--ink-faint);
+  }
+
+  /* Animations
+     NOTE: SVG <g> nodes use the `transform` attribute to position themselves
+     in the viewBox. A CSS `transform` on those same elements OVERRIDES the
+     SVG attribute and collapses everything to the origin. So node reveal is
+     opacity-only — no transform in the keyframe. */
+  @keyframes rise {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+  @keyframes drawIn {
+    from { stroke-dashoffset: 600; }
+    to   { stroke-dashoffset: 0; }
+  }
+  .reveal { animation: rise 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both; }
+  .reveal.d1 { animation-delay: 0.1s; }
+  .reveal.d2 { animation-delay: 0.25s; }
+  .reveal.d3 { animation-delay: 0.4s; }
+  .reveal.d4 { animation-delay: 0.55s; }
+  svg.arch path.edge,
+  svg.arch path.edge.dashed,
+  svg.arch path.edge.coral {
+    stroke-dasharray: 600;
+    stroke-dashoffset: 600;
+    animation: drawIn 1.6s cubic-bezier(0.65, 0, 0.35, 1) 0.6s forwards;
+  }
+  svg.arch g.node { animation: fadeIn 0.6s ease-out both; }
+  svg.arch g.node.s1 { animation-delay: 0.1s; }
+  svg.arch g.node.s2 { animation-delay: 0.18s; }
+  svg.arch g.node.s3 { animation-delay: 0.26s; }
+  svg.arch g.node.s4 { animation-delay: 0.34s; }
+  svg.arch g.node.s5 { animation-delay: 0.42s; }
+  svg.arch g.node.s6 { animation-delay: 0.5s; }
+  svg.arch g.node.s7 { animation-delay: 0.58s; }
+  svg.arch g.node.s8 { animation-delay: 0.66s; }
+
+  @media (max-width: 880px) {
+    .masthead { grid-template-columns: 1fr; gap: 28px; }
+    .tool { grid-column: span 12; }
+    .page { padding: 32px 22px 64px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <div class="eyebrow">
+    <span><span class="dot"></span>SEA-CRET AGENT / INTERNAL TECHNICAL BRIEF</span>
+    <span class="right">
+      <span>v 0.1 · MAY 2026</span>
+      <span>1 of 1</span>
+    </span>
+  </div>
+
+  <header class="masthead">
+    <h1 class="reveal">A copilot<br>that <em>listens</em>,<br>thinks, &amp; replies.</h1>
+    <p class="deck reveal d1">A local meeting assistant. Captures customer audio, transcribes on-device, detects questions, and answers them on-screen — before the customer finishes talking.</p>
+  </header>
+
+  <div class="section-label reveal d2">Architecture · pipeline view</div>
+
+  <div class="diagram-frame reveal d3">
+    <svg class="arch" viewBox="0 0 1140 700" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#4a443c"/>
+        </marker>
+        <marker id="arrow-faint" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#7d7567"/>
+        </marker>
+        <marker id="arrow-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0,0 L10,5 L0,10 z" fill="#e8533a"/>
+        </marker>
+      </defs>
+
+      <!-- TRUST BOUNDARY. The dashed container wraps everything that runs
+           locally inside the Python process: audio capture, the Swift sidecar,
+           and the on-device speaker model. Customer audio never leaves this
+           box. Only the labeled transcript crosses below it to Claude. -->
+      <g class="node s1">
+        <rect class="container-rect" x="20" y="22" width="1100" height="118" rx="6"/>
+        <text class="container-label" x="46" y="22">Python orchestrator · on your laptop</text>
+        <text class="container-sub" x="1094" y="22" text-anchor="end">audio stays inside · only text crosses out</text>
+      </g>
+
+      <!-- ROW 1: capture. The audio node now shows two parallel streams
+           (mic + system) feeding into BlackHole's mixer. -->
+      <g class="node s1" transform="translate(40,40)">
+        <rect class="node-rect capture" x="0" y="0" width="200" height="78" rx="3"/>
+        <text class="node-tag capture" x="14" y="20">01 · INPUT</text>
+        <text class="node-title" x="14" y="44">Meeting audio</text>
+        <!-- two-stream pips replace the old single-line subtitle -->
+        <circle class="stream-pip" cx="18" cy="62" r="3"/>
+        <text class="stream-pip-label" x="26" y="65">Mic</text>
+        <circle class="stream-pip" cx="74" cy="62" r="3"/>
+        <text class="stream-pip-label" x="82" y="65">System audio</text>
+      </g>
+
+      <g class="node s2" transform="translate(290,40)">
+        <rect class="node-rect capture" x="0" y="0" width="200" height="78" rx="3"/>
+        <text class="node-tag capture" x="14" y="20">02 · ROUTING</text>
+        <text class="node-title" x="14" y="44">BlackHole</text>
+        <text class="node-sub" x="14" y="62">Virtual audio cable</text>
+      </g>
+
+      <g class="node s3" transform="translate(540,40)">
+        <rect class="node-rect local" x="0" y="0" width="220" height="78" rx="3"/>
+        <text class="node-tag local" x="14" y="20">03 · ON-DEVICE</text>
+        <text class="node-title" x="14" y="44">Apple SpeechAnalyzer</text>
+        <text class="node-sub" x="14" y="62">Swift sidecar · speech → text</text>
+      </g>
+
+      <g class="node s4" transform="translate(810,40)">
+        <rect class="node-rect local" x="0" y="0" width="290" height="78" rx="3"/>
+        <text class="node-tag local" x="14" y="20">04 · ON-DEVICE</text>
+        <text class="node-title" x="14" y="44">Resemblyzer</text>
+        <text class="node-sub" x="14" y="62">Voice fingerprints · who's talking</text>
+      </g>
+
+      <!-- horizontal arrows row 1 -->
+      <path class="edge" d="M 240 79 L 290 79" marker-end="url(#arrow)"/>
+      <path class="edge" d="M 490 79 L 540 79" marker-end="url(#arrow)"/>
+      <path class="edge" d="M 760 79 L 810 79" marker-end="url(#arrow)"/>
+
+      <!-- elbow into the brain -->
+      <path class="edge" d="M 955 118 L 955 200 L 570 200 L 570 270" marker-end="url(#arrow)"/>
+      <text class="edge-label" x="585" y="194">labeled transcript</text>
+
+      <!-- ROW 2: brain -->
+      <g class="node s5" transform="translate(390,270)">
+        <rect class="node-rect brain" x="0" y="0" width="360" height="120" rx="60"/>
+        <text class="node-tag brain" x="32" y="28">CORE · REASONING</text>
+        <text class="node-title" x="32" y="60" style="font-size:22px">Claude Opus 4.7</text>
+        <text class="node-sub" x="32" y="84" style="font-size:13px">via Salesforce AI Model Gateway</text>
+        <text class="node-sub" x="32" y="104" style="font-style:italic;font-family:Fraunces,serif">four prompts · one model</text>
+      </g>
+
+      <!-- ROW 3: outputs -->
+      <g class="node s6" transform="translate(40,520)">
+        <rect class="node-rect ext" x="0" y="0" width="280" height="86" rx="3"/>
+        <text class="node-tag ext" x="14" y="20">05 · GROUNDING</text>
+        <text class="node-title" x="14" y="44">Slack + Web research</text>
+        <text class="node-sub" x="14" y="64">Internal Slack (MCP) · DuckDuckGo · fetch</text>
+      </g>
+
+      <g class="node s7" transform="translate(450,520)">
+        <rect class="node-rect ui" x="0" y="0" width="240" height="86" rx="3"/>
+        <text class="node-tag ui" x="14" y="20">06 · LIVE UI</text>
+        <text class="node-title" x="14" y="44">Browser sidebar</text>
+        <text class="node-sub" x="14" y="64">Transcript + Q&amp;A cards</text>
+      </g>
+
+      <g class="node s8" transform="translate(860,520)">
+        <rect class="node-rect ext" x="0" y="0" width="240" height="86" rx="3"/>
+        <text class="node-tag ext" x="14" y="20">07 · POST-MEETING</text>
+        <text class="node-title" x="14" y="44">Google Docs</text>
+        <text class="node-sub" x="14" y="64">Summary export · MCP</text>
+      </g>
+
+      <!-- BRAIN ↔ DOWNSTREAM
+           Three edges only. Two carry traffic both ways (double-headed arrows). -->
+
+      <!-- ① brain ↔ DuckDuckGo : research loop (ask, get sources back) -->
+      <path class="edge coral" d="M 470 390 C 440 460, 270 470, 210 518"
+            marker-start="url(#arrow-coral)" marker-end="url(#arrow-coral)"/>
+      <text class="edge-num"   x="294" y="442">1</text>
+      <text class="edge-label" x="310" y="442">research the question</text>
+
+      <!-- ② brain ↔ sidebar : live answers + end-session trigger -->
+      <path class="edge coral" d="M 570 390 L 570 518"
+            marker-start="url(#arrow-coral)" marker-end="url(#arrow-coral)"/>
+      <text class="edge-num"   x="586" y="460">2</text>
+      <text class="edge-label" x="602" y="460">live answers</text>
+
+      <!-- ③ brain → google docs : summary export at session end -->
+      <path class="edge coral" d="M 670 390 C 720 460, 870 470, 920 518"
+            marker-end="url(#arrow-coral)"/>
+      <text class="edge-num"   x="780" y="442">3</text>
+      <text class="edge-label" x="796" y="442">polished summary</text>
+    </svg>
+
+    <div class="legend">
+      <span><i style="border-color:var(--ocean)"></i>Audio capture</span>
+      <span><i style="border-color:var(--moss)"></i>On-device processing</span>
+      <span><i class="brain" style="border-color:var(--coral)"></i>The AI brain</span>
+      <span><i style="border-color:var(--plum)"></i>External services</span>
+      <span><i style="border-color:var(--gold)"></i>What you see</span>
+      <span style="border-left:1px solid var(--rule); padding-left:18px; margin-left:6px;"><i style="border-color:var(--moss); border-style:dashed;"></i>Trust boundary · laptop</span>
+    </div>
+  </div>
+
+  <div class="section-label">The toolkit · what each piece does</div>
+
+  <div class="tools">
+
+    <article class="tool">
+      <span class="num">01</span>
+      <div>
+        <h3>BlackHole</h3>
+        <div class="where">Open-source · macOS · brew install</div>
+        <p class="role">A free virtual audio cable that splits system audio so the laptop can hear the meeting <em>and</em> you still hear it through your headphones.</p>
+        <p class="why">Without it, no Teams or Meet call can be captured at all.</p>
+      </div>
+    </article>
+
+    <article class="tool">
+      <span class="num">02</span>
+      <div>
+        <h3>Apple SpeechAnalyzer</h3>
+        <div class="where">macOS 26 native · Swift sidecar binary</div>
+        <p class="role">On-device speech-to-text built into the OS. A small Swift binary streams Int16 PCM in and emits transcript JSONL out.</p>
+        <p class="why">Customer voice never leaves the laptop. Free, fast, and accurate.</p>
+      </div>
+    </article>
+
+    <article class="tool">
+      <span class="num">03</span>
+      <div>
+        <h3>Resemblyzer</h3>
+        <div class="where">Python · CPU voice embeddings</div>
+        <p class="role">Open-source voice-fingerprint model. Tags each segment with "Me" or "Speaker N" using a centroid-clustering approach.</p>
+        <p class="why">Lets the AI react differently when <em>you</em> talk vs the customer asking.</p>
+      </div>
+    </article>
+
+    <article class="tool">
+      <span class="num">04</span>
+      <div>
+        <h3>Claude Opus 4.7</h3>
+        <div class="where">Salesforce AI Model Gateway · 4 prompts</div>
+        <p class="role">The brain. Maintains a structured meeting state, detects real customer questions, synthesizes grounded answers, and writes the post-meeting summary.</p>
+        <p class="why">One model, four roles — counts toward existing AI budget.</p>
+      </div>
+    </article>
+
+    <article class="tool">
+      <span class="num">05</span>
+      <div>
+        <h3>Slack + Web research</h3>
+        <div class="where">Slack MCP · DuckDuckGo · page fetch</div>
+        <p class="role">The answer engine searches internal Slack (product, engineering, enablement channels) <em>and</em> the public web — help docs, release notes, Trailhead — then ranks sources by a strict tier hierarchy before answering.</p>
+        <p class="why">Internal context + official docs. Stops the AI from guessing; every answer cites its source.</p>
+      </div>
+    </article>
+
+    <article class="tool">
+      <span class="num">06</span>
+      <div>
+        <h3>FastAPI + WebSocket</h3>
+        <div class="where">Python 3.13 · uvicorn · localhost:8765</div>
+        <p class="role">The plumbing that wires audio capture, transcription, detection, and answers together — and pushes live updates to the browser.</p>
+        <p class="why">No infra to deploy. <code>python -m app.main</code> is the whole launch command.</p>
+      </div>
+    </article>
+
+    <article class="tool">
+      <span class="num">07</span>
+      <div>
+        <h3>Browser sidebar</h3>
+        <div class="where">Vanilla HTML / CSS / JS · second monitor</div>
+        <p class="role">Live transcript on the left, Q&amp;A cards with cited URLs on the right. Speakers are renameable inline as you identify them.</p>
+        <p class="why">Nothing for the user to install — just <code>localhost:8765</code>.</p>
+      </div>
+    </article>
+
+    <article class="tool">
+      <span class="num">08</span>
+      <div>
+        <h3>Google Docs export</h3>
+        <div class="where">Claude MCP · google-adc server</div>
+        <p class="role">After the meeting, one click hands the summary to Claude's existing MCP integration, which creates a fresh Google Doc.</p>
+        <p class="why">Customer-ready notes land in your Drive automatically — no copy-paste.</p>
+      </div>
+    </article>
+
+  </div>
+
+  <div class="pitch reveal d4">
+    <p>Audio leaves the meeting → captured locally → transcribed <em>on-device</em> → labeled by speaker → fed to <strong>Claude</strong>, which spots the customer's question, researches it on the web, and writes the answer in a sidebar <em>before the customer has finished talking</em>. After the call, the same brain writes the summary and pushes it to Google Docs.</p>
+  </div>
+
+  <div class="colophon">
+    <span>SEA-CRET AGENT · INTERNAL</span>
+    <span>SEA DONG</span>
+    <span>FILE · sea-cret-arch.html</span>
+  </div>
+
+</div>
+</body>
+</html>

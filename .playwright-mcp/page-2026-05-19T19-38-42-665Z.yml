@@ -1,0 +1,21 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - heading "Sea-cret Agent" [level=1] [ref=e6]
+    - generic [ref=e7]:
+      - button "Past Meetings" [ref=e10] [cursor=pointer]
+      - button "Start Session" [ref=e11] [cursor=pointer]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - heading "Live Transcript" [level=2] [ref=e15]
+        - generic [ref=e16]: 00:00
+      - generic [ref=e163]:
+        - paragraph [ref=e164]: Waiting for audio...
+        - paragraph [ref=e165]: Start a session, then speak or play meeting audio through BlackHole.
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - heading "Detected Q&A" [level=2] [ref=e23]
+        - generic [ref=e24]: "0"
+      - generic [ref=e166]:
+        - paragraph [ref=e167]: No questions detected yet
+        - paragraph [ref=e168]: Questions from the customer will appear here with suggested answers.

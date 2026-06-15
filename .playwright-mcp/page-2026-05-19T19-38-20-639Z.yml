@@ -1,0 +1,82 @@
+- generic [ref=e2]:
+  - banner [ref=e3]:
+    - heading "Sea-cret Agent" [level=1] [ref=e6]
+    - generic [ref=e7]:
+      - button "Past Meetings" [ref=e10] [cursor=pointer]
+      - button "Start Session" [disabled] [ref=e11] [cursor=pointer]
+  - generic [ref=e84]:
+    - generic [ref=e85]:
+      - generic [ref=e86]: Viewing past meeting
+      - generic [ref=e87]: Meeting 2026-05-19 07:33
+    - generic [ref=e88]:
+      - button "Show Summary" [active] [ref=e89] [cursor=pointer]
+      - button "Exit" [ref=e90] [cursor=pointer]
+  - generic [ref=e12]:
+    - generic [ref=e13]:
+      - generic [ref=e14]:
+        - heading "Live Transcript" [level=2] [ref=e15]
+        - generic [ref=e16]: 00:00
+      - generic [ref=e17]:
+        - generic [ref=e91]: 00:00UnknownAll right.
+        - generic [ref=e92]: 00:02UnknownHello, everyone.
+        - generic [ref=e93]: 00:03UnknownLet's get started.
+        - generic [ref=e94]: 00:04UnknownUh, what is 0 copy for agents in Asian Force?
+        - generic [ref=e95]: 00:11UnknownWhy does it matter?
+        - generic [ref=e96]: 00:12UnknownWhy do we need data 360?
+        - generic [ref=e97]: 00:15UnknownThese are some of the questions that we're gonna dive into.
+        - generic [ref=e98]: 00:24UnknownHow does agents select the right topics when it goes through the list of topics that it has, how does it know to pick the right action?
+        - generic [ref=e99]: 00:49UnknownAll right, now I'm just gonna test the recording real quick to see if that works.
+        - generic [ref=e100]: 00:53UnknownSo, theoretically, if I play. This one.
+        - generic [ref=e101]: 01:02UnknownAgent Force.
+        - generic [ref=e102]: 01:08UnknownAgent of force.
+        - generic [ref=e103]: 01:36UnknownHello, everyone.
+        - generic [ref=e104]: 01:38UnknownUh, my name is C, and I'm on the data in AI architects team.
+        - generic [ref=e105]: 01:43UnknownUh, I built an AI agent that scans your salesforce board and turns every problem it finds into a rap diss track.
+        - generic [ref=e106]: 01:50UnknownSo, what's the problem that we're solving here?
+        - generic [ref=e107]: 01:53UnknownWell, every salesforce org eventually is gonna have technical debt, you have, you're gonna have fields that you don't use, uh, you know, apex, apex classes with no test coverage, flows that are ending up becoming like spaghetti and making the agent's life hard, uh, for automation and for, you know, agentic use cases.
+        - generic [ref=e108]: 02:11UnknownAnd so these problems are real.
+        - generic [ref=e109]: 02:13UnknownThey cause deployment failures, their security gaps.
+        - generic [ref=e110]: 02:16UnknownYou know, govern their limits are hit.
+        - generic [ref=e111]: 02:18UnknownBut nobody really pays attention because, you know, if you ever done a security scan or a health check, they're really dry and really boring.
+        - generic [ref=e112]: 02:26UnknownBut what if we could actually make this really fun?
+        - generic [ref=e113]: 02:28UnknownSo, how this actually works.
+        - generic [ref=e114]: 02:32UnknownBasically, I have seven scanners running in parallel.
+        - generic [ref=e115]: 02:36Unknownacross over 200 different checks.
+        - generic [ref=e116]: 02:39UnknownAnd these are the different categories that we look at, so metadata, so these...
+    - generic [ref=e21]:
+      - generic [ref=e22]:
+        - heading "Detected Q&A" [level=2] [ref=e23]
+        - generic [ref=e24]: "3"
+      - generic [ref=e25]:
+        - generic [ref=e117]:
+          - generic [ref=e118]:
+            - generic [ref=e119]: Q
+            - paragraph [ref=e121]: What is Zero Copy for Agents in Salesforce?
+          - generic [ref=e122]:
+            - generic [ref=e123]: Zero Copy Agents
+            - generic [ref=e124]: 90%
+          - paragraph [ref=e128]: • Zero Copy is a Salesforce Data Cloud (Data 360) integration architecture that lets agents and apps query data sitting in external lakehouses — Snowflake, Databricks, Google BigQuery, Amazon Redshift, Google Lakehouse, IBM watsonx.data — without copying, moving, or replicating it (Salesforce Zero Copy Guide).
+        - generic [ref=e129]:
+          - generic [ref=e130]:
+            - generic [ref=e131]: Q
+            - paragraph [ref=e133]: Why do we need Salesforce Data 360?
+          - generic [ref=e134]:
+            - generic [ref=e135]: Data 360
+            - generic [ref=e136]: 85%
+          - paragraph [ref=e140]: • Salesforce Data 360 is the rebrand of Data Cloud (announced at Dreamforce 2025) — it's the real-time data activation engine native to the Salesforce platform, so it isn't an optional add-on but the data substrate that every other Salesforce product (CRM apps, Agentforce, Marketing Cloud, Tableau) draws from.
+        - generic [ref=e141]:
+          - generic [ref=e142]:
+            - generic [ref=e143]: Q
+            - paragraph [ref=e145]: How do Salesforce agents select the right topic from their list of topics and know which action to pick?
+          - generic [ref=e146]:
+            - generic [ref=e147]: Agent Topic Selection
+            - generic [ref=e148]: 90%
+          - paragraph [ref=e152]: • Agentforce uses the **Atlas Reasoning Engine** as its decision brain. When a user message arrives, the engine first runs **topic (now called subagent) classification** — comparing the utterance to each subagent's name and **classification description** — and falls back to an 'off-topic' subagent if nothing matches confidently.
+  - generic [ref=e154]:
+    - generic [ref=e155]:
+      - heading "Meeting Summary" [level=2] [ref=e156]
+      - button "Close" [ref=e157] [cursor=pointer]
+    - generic [ref=e158]: "# Meeting 2026-05-19 07:33 **Date:** Tuesday, May 19, 2026 at 07:33 **Duration:** 2m 48s **Questions detected:** 3 (3 answered, 0 gaps) --- ## Questions & Answers ### Q1: What is Zero Copy for Agents in Salesforce? **Topic:** Zero Copy Agents **Confidence:** 90% > • Zero Copy is a Salesforce Data Cloud (Data 360) integration architecture that lets agents and apps query data sitting in external lakehouses — Snowflake, Databricks, Google BigQuery, Amazon Redshift, Google Lakehouse, IBM watsonx.data — without copying, moving, or replicating it (Salesforce Zero Copy Guide). • For Agentforce, Zero Copy is the grounding pathway: federated external tables are exposed as Data 360 DLOs/DMOs that Agentforce topics, prompt templates, and retrievers ground on, so agents reason over warehouse data while it stays in place under the source system's governance (Salesforce architect.salesforce.com Data 360 Integration Patterns; Salesforce + Google Cloud April 2026 announcement on \"Zero Copy with Google Lakehouse\" for Agentforce). • Two directional patterns: Inbound (Zero Copy Federation — Data 360 queries Snowflake/BigQuery on demand) and Outbound (Zero Copy Sharing — Databricks/Snowflake/Tableau read enriched DMOs/segments from Data 360), both inheriting Trust Layer, FLS, and sharing rules (architect.salesforce.com Data 360 Integration Patterns). • Commercials under the Feb 23 2026 Flex Credits model: batch ingestion and inbound Zero Copy federation are free; Zero Copy Sharing Out, queries, segmentation, and activation consume Flex Credits (internal Slack post, Rony El Mann, #csg-israel-proservices, Apr 14 2026, citing the Flex Credits Rate Card — Tier 3, not yet cross-validated against a public help.salesforce.com page). • Production references: Pearson and Pepkor ground Agentforce on BigQuery via Zero Copy; PepsiCo and Engine on Snowflake/Databricks; Precina on EMR data; FedEx is a large Databricks Zero Copy customer (internal Salesforce \"Data 360 Customer Stories\" deck — Tier 3). • Note: \"Zero Copy for Agents\" is not a separately branded SKU in official Salesforce documentation; it is the same Zero Copy Data Federation capability positioned as the grounding layer for Agentforce. If the customer is asking about a specific named product, ask them where they saw the term so we can validate. **Sources:** Salesforce — What Is Zero Copy? (Zero Copy Partner Network Guide), Salesforce Architect — Data 360 Integration Patterns and Practices, Salesforce Help — Zero Copy Data Federation (c360_a_byol_data_federation), Salesforce + Google Cloud joint announcement, Google Cloud Next '26 (Apr 22 2026), Internal Slack — Flex Credits / Data 360 consumption update (#csg-israel-proservices, Apr 14 2026), Internal Slack — Data 360 Customer Stories (Zero Copy references: Pearson, Pepkor, PepsiCo, Engine, Precina, FedEx) ### Q2: Why do we need Salesforce Data 360? **Topic:** Data 360 **Confidence:** 85% > • Salesforce Data 360 is the rebrand of Data Cloud (announced at Dreamforce 2025) — it's the real-time data activation engine native to the Salesforce platform, so it isn't an optional add-on but the data substrate that every other Salesforce product (CRM apps, Agentforce, Marketing Cloud, Tableau) draws from. • You need it because AI agents require context, not just data — Data 360 unifies fragmented data from CRM, data lakes, websites, and legacy systems into a single trusted Customer 360 profile that grounds Agentforce agents in accurate, up-to-date customer context. • Its Zero-Copy architecture (e.g., with Snowflake, Databricks) lets teams query and activate massive external datasets without building ETL pipelines or duplicating data, reducing integration cost and keeping a single source of truth. • It enables activation across every Salesforce Cloud — segmentation, personalization, calculated insights, and triggering Flows/Agents — so the same harmonized data drives sales, service, marketing, and analytics consistently. • Pricing is consumption-based (credits + storage + premium add-ons), so customers scale spend with actual usage rather than per-seat — important to call out when positioning vs. standalone CDPs, lakes, or warehouses. • Net: without Data 360, Agentforce and Salesforce apps run on siloed CRM data only; with it, they operate on a unified, governed, real-time view of all enterprise data — that's the architectural reason it's positioned as foundational to the Agentforce 360 platform. **Sources:** Salesforce Data 360 product page (salesforce.com/data), Internal Slack: Data Cloud → Data 360 rebrand announcement (Erika Ehrli, Data Cloud Product Marketing, 2025-10-07), Salesforce Help: Data 360 rebrand release note (Winter '26), Internal Slack: Agentforce/AI Doc rebrand content announcement (Dale Hunter, 2025-12-03) ### Q3: How do Salesforce agents select the right topic from their list of topics and know which action to pick? **Topic:** Agent Topic Selection **Confidence:** 90% > • Agentforce uses the **Atlas Reasoning Engine** as its decision brain. When a user message arrives, the engine first runs **topic (now called subagent) classification** — comparing the utterance to each subagent's name and **classification description** — and falls back to an 'off-topic' subagent if nothing matches confidently. • Once a subagent is selected, its **scope, instructions, and registered actions** are injected into the prompt alongside the user message and roughly the last six conversation turns; this combined prompt drives the LLM's next decision (call an action, ask a clarifying question, or respond). • Action selection happens **inside the chosen subagent**: the LLM reasons (ReAct/Chain-of-Thought style) over the action list using each action's name, description, and input/output schema, picks the best action, fills in inputs, then re-reasons over the result. • In the Spring '26 release, topics were renamed **subagents** and the Topic Selector is now the **Agent Router** — label-only change, no behavior difference. • New agents built from the Agentforce Service and Employee templates now use the Salesforce-owned **HyperClassifier** model for subagent routing — faster and more precise than a general LLM, especially on negative instructions, but it requires subagent transitions or connected subagents (no 'normal' actions) and ignores images. • Practical implication: the **`description:` field is the dominant routing signal** — tightening descriptions (especially with explicit exclusions) usually fixes misrouting faster than rewriting reasoning instructions. **Sources:** Salesforce Help — Understanding the Atlas Reasoning Engine Workflow, Salesforce Help — Subagent Classification and Routing, Salesforce Help — Subagents (formerly Topics), Salesforce Help — How the Atlas Reasoning Engine Powers Agentforce, Spring '26 Release Note — Topics renamed to Subagents, Spring '26 Release Note — Improve Subagent Classification with HyperClassifier, Internal #broadcast-agentforce-ai-doc — Topics→Subagents and HyperClassifier announcements ## Action Items None identified. --- ## Full Transcript **[00:00]** All right. **[00:02]** Hello, everyone. **[00:03]** Let's get started. **[00:04]** Uh, what is 0 copy for agents in Asian Force? **[00:11]** Why does it matter? **[00:12]** Why do we need data 360? **[00:15]** These are some of the questions that we're gonna dive into. **[00:24]** How does agents select the right topics when it goes through the list of topics that it has, how does it know to pick the right action? **[00:49]** All right, now I'm just gonna test the recording real quick to see if that works. **[00:53]** So, theoretically, if I play. This one. **[01:02]** Agent Force. **[01:08]** Agent of force. **[01:36]** Hello, everyone. **[01:38]** Uh, my name is C, and I'm on the data in AI architects team. **[01:43]** Uh, I built an AI agent that scans your salesforce board and turns every problem it finds into a rap diss track. **[01:50]** So, what's the problem that we're solving here? **[01:53]** Well, every salesforce org eventually is gonna have technical debt, you have, you're gonna have fields that you don't use, uh, you know, apex, apex classes with no test coverage, flows that are ending up becoming like spaghetti and making the agent's life hard, uh, for automation and for, you know, agentic use cases. **[02:11]** And so these problems are real. **[02:13]** They cause deployment failures, their security gaps. **[02:16]** You know, govern their limits are hit. **[02:18]** But nobody really pays attention because, you know, if you ever done a security scan or a health check, they're really dry and really boring. **[02:26]** But what if we could actually make this really fun? **[02:28]** So, how this actually works. **[02:32]** Basically, I have seven scanners running in parallel. **[02:36]** across over 200 different checks. **[02:39]** And these are the different categories that we look at, so metadata, so these..."
+    - generic [ref=e159]:
+      - button "Copy to Clipboard" [ref=e160] [cursor=pointer]
+      - button "Create Google Doc" [ref=e161] [cursor=pointer]

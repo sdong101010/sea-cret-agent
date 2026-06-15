@@ -3,8 +3,9 @@ uvicorn[standard]
 websockets
 sounddevice
 numpy
-faster-whisper
+# faster-whisper -- replaced by the SpeechAnalyzer Swift sidecar in bin/speech_sidecar
 resemblyzer
 ddgs
 httpx
 python-dotenv
+truststore

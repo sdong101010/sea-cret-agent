@@ -1,9 +1,24 @@
-"""Detect and resolve customer questions from transcript using Gemini.
+"""Streaming question detection.
 
-Two-stage pipeline:
-  1. Detect: find questions in the transcript window
-  2. Resolve: rewrite vague/follow-up questions into self-contained queries
-     using full conversation context and existing question threads
+Different from the old periodic-scan model: we look at NEW segments only,
+one detection pass per "thought boundary" (a pause or a question mark in
+the latest segment), and use the running meeting state to decide whether
+the speaker just asked a real question that needs an answer.
+
+Public API kept compatible with main.py:
+  - detect(new_lines, meeting_state, last_segment_speaker) -> list[(q, thread)]
+  - update_thread_answer / get_all_threads / get_all_questions / clear
+  - DetectedQuestion / QuestionThread dataclasses
+
+Key behaviors:
+  - We pass the FULL meeting context (state + the new segments) to the LLM,
+    not just a 60s rolling window. The model judges "is this a real question
+    that needs research?" with the whole picture.
+  - We do NOT dedup against keyword overlap any more. Dedup is now handled
+    by treating new questions on the same topic as follow-ups within an
+    existing thread (the LLM decides this).
+  - "Why now": every detected question carries a one-line rationale we feed
+    into the answer engine so it knows the speaker's intent.
 """
 
 import json
@@ -13,65 +28,68 @@ from dataclasses import dataclass, field
 
 import config
 from app import llm
+from app.meeting_state import MeetingState
 
 logger = logging.getLogger(__name__)
 
+
 DETECTION_PROMPT = """\
-You are analyzing a live meeting transcript to find real customer questions that \
-need a technical answer. Be VERY selective. Most transcript windows contain ZERO questions.
+You are a silent expert listening to a live meeting. Your job: spot when \
+someone has just asked a real question that needs a substantive technical \
+answer, so research can start in the background.
 
-A REAL question:
-- Has clear interrogative structure (who/what/when/where/why/how, or can/do/does/is/are/will)
-- Asks about a product capability, technical detail, or implementation concern
-- Is a complete, coherent thought (NOT cut off mid-sentence)
+You receive:
+1. A snapshot of the meeting state (what's been established so far).
+2. The newest transcript segments since you last looked.
 
-REJECT all of these (return empty list):
-- Incomplete or cut-off sentences ("Can it process that and", "So if we were to")
-- Statements, even if they mention a topic ("We would have encryption keys")
-- Thinking aloud or rhetorical remarks ("So think about it as the self-service...")
-- Social chat, filler, or greetings
-- Anything where the speaker is explaining, not asking
+Decide whether the newest segments contain one or more questions that warrant \
+researching an answer. Be discerning but not stingy -- if someone asks a \
+genuine question, surface it. Ignore filler ("right?", "you know?"), \
+acknowledgements, and rhetorical asides.
 
-CRITICAL: Follow-up questions like "Will that work?", "Can it do that?", "Is that possible?" \
-are ONLY valid if you can fully resolve what "that"/"it"/"this" refers to from the conversation \
-context. If you cannot determine the specific subject, REJECT the question.
-{threads_context}
-For each real question found:
-1. raw_text: the exact words as spoken
-2. resolved_text: rewrite into a FULLY self-contained question — replace ALL pronouns \
-and vague references ("that", "it", "this", "those") with the specific subject from context. \
-Someone reading ONLY the resolved_text must understand exactly what is being asked.
-3. search_query: an optimized search query for web research
-4. topic: 2-3 word topic label
-5. confidence: 0.0-1.0
-6. followup_thread_id: if this is a follow-up to an existing thread, set to that thread's id; otherwise null
+A QUESTION qualifies if:
+- It's a complete, coherent thought (not cut off mid-sentence)
+- It's asking about a product capability, technical detail, requirement, \
+limitation, pricing/commercial detail, or implementation concern
+- It's NOT already answered by something said earlier in the meeting
 
-GOOD examples:
-- Raw: "Can you decrypt the data if there are utilities available?"
-  Resolved: same (already self-contained)
-- Raw: "Will that work?" (after discussion about sending scanned driver's license to Data Cloud)
-  Resolved: "Can Salesforce Data Cloud process and extract fields from scanned document images like driver's licenses?"
-- Raw: "How does it handle field-level encryption?"
-  Resolved: "How does Salesforce handle field-level encryption?"
+Use the meeting state to RESOLVE references. If the speaker says "Will that \
+work?" and the meeting just discussed sending KYC documents to Data Cloud, \
+the resolved question is about Data Cloud handling KYC document images.
 
-BAD examples (REJECT these):
-- "Can it process that and" → incomplete sentence, cut off mid-thought
-- "We would have the platform encryption keys" → statement, not a question
-- "Will that work?" → REJECT if you cannot determine what "that" refers to
+For each genuine question found, also produce:
+- raw_text: the exact words spoken
+- resolved_text: the question rewritten to be self-contained (someone reading \
+ONLY this should understand exactly what's being asked, given the meeting \
+context)
+- search_query: a query that would find authoritative information about it
+- topic: 2-4 word topic label
+- why_now: ONE sentence on why the speaker likely asked this -- their intent \
+or motivation, given the meeting so far. (E.g. "Speaker is probing whether \
+encryption is sufficient for their regulated KYC workflow.")
+- followup_thread_id: if this is a follow-up to one of the existing threads \
+listed below, set to that thread's id; otherwise null.
+- confidence: 0.0-1.0
 
-Return JSON: {{"questions": [{{"raw_text": "<exact words>", "resolved_text": "<self-contained rewrite>", "search_query": "<optimized query>", "topic": "<2-3 words>", "confidence": <0.0-1.0>, "followup_thread_id": <id or null>}}]}}
-If nothing qualifies, return: {{"questions": []}}
-
-TRANSCRIPT (recent conversation):
----
-{transcript}
----
-
-Return ONLY valid JSON."""
-
-THREADS_CONTEXT = """
 EXISTING QUESTION THREADS (use followup_thread_id to link follow-ups):
 {threads}
+
+MEETING STATE:
+{meeting_state}
+
+NEWEST TRANSCRIPT SEGMENTS (chronological, speaker-labeled):
+{new_segments}
+
+Return ONLY valid JSON:
+{{"questions": [
+  {{
+    "raw_text": "...", "resolved_text": "...", "search_query": "...",
+    "topic": "...", "why_now": "...",
+    "followup_thread_id": <id or null>, "confidence": <0.0-1.0>
+  }}
+]}}
+
+If there are no genuine questions in the newest segments, return: {{"questions": []}}
 """
 
 
@@ -82,6 +100,7 @@ class DetectedQuestion:
     topic: str
     confidence: float
     search_query: str = ""
+    why_now: str = ""
     thread_id: int = 0
     is_followup: bool = False
     timestamp: float = field(default_factory=time.time)
@@ -107,71 +126,36 @@ class QuestionDetector:
     def __init__(self):
         self._threads: list[QuestionThread] = []
         self._all_questions: list[DetectedQuestion] = []
-        self._last_detection_time: float = 0
-        self._min_interval: float = 3.0
         self._next_thread_id: int = 0
 
-    @staticmethod
-    def _looks_like_question(text: str) -> bool:
-        """Structural check: reject text that isn't actually a question."""
-        t = text.strip()
-        if t.endswith("?"):
-            return True
-        t_lower = t.lower()
-        interrogatives = (
-            "who ", "what ", "when ", "where ", "why ", "how ",
-            "can ", "could ", "do ", "does ", "did ", "is ", "are ",
-            "will ", "would ", "should ", "has ", "have ", "was ", "were ",
-        )
-        return t_lower.startswith(interrogatives)
-
-    def _is_duplicate(self, resolved_text: str) -> bool:
-        """Check if a question is too similar to a recently detected one."""
-        resolved_lower = resolved_text.lower().strip("? ")
-        for q in self._all_questions[-10:]:
-            existing = q.text.lower().strip("? ")
-            if resolved_lower in existing or existing in resolved_lower:
-                return True
-            words_new = set(resolved_lower.split())
-            words_existing = set(existing.split())
-            if len(words_new) > 3 and len(words_existing) > 3:
-                overlap = len(words_new & words_existing) / max(len(words_new), len(words_existing))
-                if overlap > 0.7:
-                    return True
-        return False
-
-    def _build_threads_context(self) -> str:
+    def _format_threads(self) -> str:
         if not self._threads:
-            return ""
+            return "  (none yet)"
         lines = []
-        for t in self._threads[-5:]:
-            lines.append(f'  Thread {t.id}: "{t.primary_question}" (topic: {t.topic})')
-        return THREADS_CONTEXT.format(threads="\n".join(lines))
+        for t in self._threads[-8:]:
+            lines.append(f'  Thread {t.id} [{t.topic}]: "{t.primary_question}"')
+        return "\n".join(lines)
 
-    async def detect(self, transcript_window: str) -> list[tuple[DetectedQuestion, QuestionThread]]:
-        """Detect and resolve questions from a transcript window.
-
-        Returns list of (question, thread) tuples. Each question has been
-        resolved into a self-contained query. Follow-ups are linked to
-        their parent thread.
-        """
-        now = time.time()
-        if now - self._last_detection_time < self._min_interval:
-            return []
-        self._last_detection_time = now
-
-        if len(transcript_window.strip()) < 20:
+    async def detect(
+        self,
+        new_segments_text: str,
+        meeting_state: MeetingState,
+    ) -> list[tuple[DetectedQuestion, QuestionThread]]:
+        """Look for questions in the newest segments, given the meeting state."""
+        if not new_segments_text.strip():
             return []
 
-        threads_context = self._build_threads_context()
         prompt = DETECTION_PROMPT.format(
-            transcript=transcript_window,
-            threads_context=threads_context,
+            threads=self._format_threads(),
+            meeting_state=meeting_state.context_block(),
+            new_segments=new_segments_text,
         )
 
         raw = await llm.generate(
-            prompt, temperature=0.1, max_tokens=1024, json_mode=True,
-            thinking_budget=0,
+            prompt,
+            max_tokens=2048,
+            json_mode=True,
+            timeout=45.0,
         )
         if not raw:
             return []
@@ -180,26 +164,29 @@ class QuestionDetector:
             parsed = json.loads(raw)
             questions_data = parsed.get("questions", [])
         except json.JSONDecodeError:
-            logger.warning("Failed to parse question detection response: %s", raw[:200])
+            logger.warning("Failed to parse detection response: %r", raw[:200])
             return []
 
-        results = []
+        results: list[tuple[DetectedQuestion, QuestionThread]] = []
         for qd in questions_data:
-            raw_text = qd.get("raw_text", qd.get("text", "")).strip()
-            resolved_text = qd.get("resolved_text", raw_text).strip()
+            raw_text = (qd.get("raw_text") or "").strip()
+            resolved_text = (qd.get("resolved_text") or raw_text).strip()
             confidence = float(qd.get("confidence", 0.0))
-            topic = qd.get("topic", "general")
+            topic = qd.get("topic") or "general"
+            why_now = (qd.get("why_now") or "").strip()
             followup_tid = qd.get("followup_thread_id")
+            search_query = (qd.get("search_query") or "").strip() or resolved_text
 
-            if not resolved_text or confidence < config.QUESTION_CONFIDENCE_THRESHOLD:
+            if not resolved_text:
                 continue
-            if not self._looks_like_question(raw_text) and not self._looks_like_question(resolved_text):
-                logger.debug("Rejected (not interrogative): %s", raw_text[:80])
+            if confidence < config.QUESTION_CONFIDENCE_THRESHOLD:
+                logger.info(
+                    "Rejected (confidence %.2f < %.2f): %s",
+                    confidence,
+                    config.QUESTION_CONFIDENCE_THRESHOLD,
+                    resolved_text[:80],
+                )
                 continue
-            if self._is_duplicate(resolved_text):
-                continue
-
-            search_query = qd.get("search_query", "").strip() or resolved_text
 
             is_followup = False
             thread = None
@@ -229,6 +216,7 @@ class QuestionDetector:
                 topic=topic,
                 confidence=confidence,
                 search_query=search_query,
+                why_now=why_now,
                 thread_id=thread.id,
                 is_followup=is_followup,
             )
@@ -237,9 +225,12 @@ class QuestionDetector:
             results.append((q, thread))
 
             logger.info(
-                'Detected %s (%.0f%%): "%s" -> "%s" [thread %d]',
-                "follow-up" if is_followup else "question",
-                confidence * 100, raw_text[:40], resolved_text[:60], thread.id,
+                'Detected %s (%.0f%%): "%s" [thread %d] -- why: %s',
+                "follow-up" if is_followup else "new",
+                confidence * 100,
+                resolved_text[:80],
+                thread.id,
+                why_now[:120],
             )
 
         return results

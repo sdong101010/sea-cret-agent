@@ -83,7 +83,8 @@ class SummaryGenerator:
         for seg in segments:
             minutes = int(seg.start_time // 60)
             seconds = int(seg.start_time % 60)
-            lines.append(f"**[{minutes:02d}:{seconds:02d}]** {seg.text}")
+            speaker = seg.speaker or "Unknown"
+            lines.append(f"**[{minutes:02d}:{seconds:02d}]** [{speaker}] {seg.text}")
         lines.append("")
 
         content = "\n".join(lines)

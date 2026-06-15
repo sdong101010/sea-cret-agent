@@ -1,4 +1,16 @@
-"""Capture system audio (BlackHole) and optionally the local microphone."""
+"""Capture system audio (BlackHole) and the local microphone.
+
+The callback receives three parallel streams per chunk:
+
+    on_audio_chunk(mixed, mic, system)
+
+  - mixed: float32 mono signal sent to the transcriber so it hears everyone
+  - mic:   float32 mono mic-only signal (zeros if no mic configured)
+  - system: float32 mono system-audio signal
+
+Speaker identification uses (mic, system) separately to label "Me" via mic
+energy and remote participants via embeddings on the system stream.
+"""
 
 import asyncio
 import logging
@@ -35,11 +47,12 @@ def list_audio_devices() -> list[dict]:
 class AudioCapture:
     """Captures from the system audio device and, when configured, the mic.
 
-    Both streams are mixed into a single mono buffer so the transcriber
-    sees the full conversation (your voice + remote participants).
+    Both streams are delivered separately to the callback (along with a mixed
+    version for the transcriber) so speaker identification can distinguish
+    your voice (from the mic) from remote participants (from system audio).
     """
 
-    def __init__(self, on_audio_chunk: Callable[[np.ndarray], None]):
+    def __init__(self, on_audio_chunk: Callable[[np.ndarray, np.ndarray, np.ndarray], None]):
         self._on_chunk = on_audio_chunk
         self._system_stream: sd.InputStream | None = None
         self._mic_stream: sd.InputStream | None = None
@@ -74,21 +87,29 @@ class AudioCapture:
             self._maybe_flush()
 
     def _maybe_flush(self):
-        """Emit a mixed chunk once all active sources have delivered data."""
+        """Emit a chunk once all active sources have delivered data."""
         if not self._system_ready:
             return
         if self._mic_enabled and not self._mic_ready:
             return
 
+        system = self._system_buf.copy()
         if self._mic_enabled:
-            mixed = self._system_buf + self._mic_buf
+            mic = self._mic_buf.copy()
+            # Built-in laptop mics run quiet (~0.005 RMS while talking).
+            # Boost into the range the speech engine expects so the user's
+            # voice doesn't get drowned out by system audio in the mixed
+            # signal. We pass the un-boosted mic to the speaker identifier
+            # so the energy gate uses raw levels.
+            mixed = system + (mic * config.MIC_GAIN)
             np.clip(mixed, -1.0, 1.0, out=mixed)
         else:
-            mixed = self._system_buf.copy()
+            mic = np.zeros_like(system)
+            mixed = system
 
         self._system_ready = False
         self._mic_ready = False
-        self._on_chunk(mixed)
+        self._on_chunk(mixed, mic, system)
 
     async def start(self):
         system_idx = find_device_by_name(config.AUDIO_DEVICE_NAME)
@@ -150,3 +171,7 @@ class AudioCapture:
         self._mic_stream = None
         self._mic_enabled = False
         logger.info("Audio capture stopped")
+
+    @property
+    def mic_enabled(self) -> bool:
+        return self._mic_enabled
