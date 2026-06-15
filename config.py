@@ -33,6 +33,18 @@ QUESTION_CONFIDENCE_THRESHOLD = float(
 TRANSCRIPT_WINDOW_SECONDS = 60
 THOUGHT_PAUSE_SECONDS = float(os.getenv("THOUGHT_PAUSE_SECONDS", "0.75"))
 
+# --- mlx-whisper hybrid transcription ---
+WHISPER_ENABLED = os.getenv("WHISPER_ENABLED", "1") == "1"
+WHISPER_MODEL = os.getenv("WHISPER_MODEL", "mlx-community/whisper-large-v3-turbo")
+# Segments shorter than this skip Whisper (avoids "Thank you for watching" hallucinations on near-silent clips).
+WHISPER_MIN_SEGMENT_SECONDS = float(os.getenv("WHISPER_MIN_SEGMENT_SECONDS", "1.0"))
+# Audio context fed to Whisper around each segment, trimmed back via word timestamps.
+WHISPER_PAD_SECONDS = float(os.getenv("WHISPER_PAD_SECONDS", "2.0"))
+# How long the question detector will wait for unseen segments to be whisper-final before proceeding.
+WHISPER_GATE_TIMEOUT_SECONDS = float(os.getenv("WHISPER_GATE_TIMEOUT_SECONDS", "5.0"))
+# How long to wait for the worker queue to drain at end-of-session before generating the summary.
+WHISPER_FLUSH_TIMEOUT_SECONDS = float(os.getenv("WHISPER_FLUSH_TIMEOUT_SECONDS", "60.0"))
+
 SUMMARIES_DIR = DATA_DIR / "summaries"
 SUMMARIES_DIR.mkdir(exist_ok=True)
 
