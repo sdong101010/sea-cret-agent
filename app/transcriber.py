@@ -16,6 +16,7 @@ import os
 import subprocess
 import threading
 import time
+import uuid
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -39,6 +40,18 @@ class TranscriptSegment:
     speaker: str = "Unknown"
     timestamp: float = field(default_factory=time.time)
     is_final: bool = True
+    id: str = field(default_factory=lambda: uuid.uuid4().hex[:12])
+    whisper_final: bool = False
+    apple_text: str = ""
+    _whisper_event: asyncio.Event | None = field(default=None, repr=False, compare=False)
+
+    @property
+    def whisper_event(self) -> asyncio.Event:
+        # Lazily create the event so it binds to whichever loop is running
+        # when the worker / waiter first touches it.
+        if self._whisper_event is None:
+            self._whisper_event = asyncio.Event()
+        return self._whisper_event
 
 
 def _ensure_binary_built():
