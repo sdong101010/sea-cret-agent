@@ -458,6 +458,7 @@
   svg.arch g.node.s6 { animation-delay: 0.5s; }
   svg.arch g.node.s7 { animation-delay: 0.58s; }
   svg.arch g.node.s8 { animation-delay: 0.66s; }
+  svg.arch g.node.s9 { animation-delay: 0.74s; }
 
   @media (max-width: 880px) {
     .masthead { grid-template-columns: 1fr; gap: 28px; }
@@ -473,7 +474,7 @@
   <div class="eyebrow">
     <span><span class="dot"></span>SEA-CRET AGENT / INTERNAL TECHNICAL BRIEF</span>
     <span class="right">
-      <span>v 0.1 · MAY 2026</span>
+      <span>v 0.2 · JUN 2026</span>
       <span>1 of 1</span>
     </span>
   </div>
@@ -501,10 +502,12 @@
 
       <!-- TRUST BOUNDARY. The dashed container wraps everything that runs
            locally inside the Python process: audio capture, the Swift sidecar,
-           and the on-device speaker model. Customer audio never leaves this
-           box. Only the labeled transcript crosses below it to Claude. -->
+           the on-device speaker model, and the mlx-whisper sidecar that
+           re-transcribes finalized segments to upgrade their text. Customer
+           audio never leaves this box. Only the labeled transcript crosses
+           below it to Claude. -->
       <g class="node s1">
-        <rect class="container-rect" x="20" y="22" width="1100" height="118" rx="6"/>
+        <rect class="container-rect" x="20" y="22" width="1100" height="240" rx="6"/>
         <text class="container-label" x="46" y="22">Python orchestrator · on your laptop</text>
         <text class="container-sub" x="1094" y="22" text-anchor="end">audio stays inside · only text crosses out</text>
       </g>
@@ -548,12 +551,35 @@
       <path class="edge" d="M 490 79 L 540 79" marker-end="url(#arrow)"/>
       <path class="edge" d="M 760 79 L 810 79" marker-end="url(#arrow)"/>
 
-      <!-- elbow into the brain -->
-      <path class="edge" d="M 955 118 L 955 200 L 570 200 L 570 270" marker-end="url(#arrow)"/>
-      <text class="edge-label" x="585" y="194">labeled transcript</text>
+      <!-- ROW 1.5: the Whisper sidecar. Sits inside the trust boundary. Pulls
+           a 60-second mic+system rolling buffer from the Python orchestrator
+           and re-transcribes each finalized Apple segment in place. Out-of-band
+           with the live path: question detection still gates on its whisper_final
+           signal, but its output upgrades the transcript via transcript_update. -->
+      <g class="node s5" transform="translate(640,160)">
+        <rect class="node-rect local" x="0" y="0" width="290" height="78" rx="3"/>
+        <text class="node-tag local" x="14" y="20">04.5 · ON-DEVICE</text>
+        <text class="node-title" x="14" y="44">mlx-whisper · WhisperWorker</text>
+        <text class="node-sub" x="14" y="62">Re-transcribes finalized segments · MLX</text>
+      </g>
+
+      <!-- BlackHole → Whisper: the mixed (mic + system) 60s rolling buffer the
+           worker slices from. Same signal Apple sees. -->
+      <path class="edge dashed" d="M 390 118 L 390 199 L 640 199" marker-end="url(#arrow-faint)"/>
+      <text class="edge-label" x="404" y="193">60s mixed buffer · mic + system</text>
+
+      <!-- Apple → Whisper: each finalized segment is enqueued. Whisper then
+           emits transcript_update over the WebSocket to upgrade the text. -->
+      <path class="edge" d="M 660 118 L 720 160" marker-end="url(#arrow)"/>
+      <text class="edge-label" x="668" y="148">finalized segment</text>
+
+      <!-- elbow into the brain. Detector is gated on whisper_final so the
+           model reasons over the upgraded text, not the Apple draft. -->
+      <path class="edge" d="M 955 118 L 1060 118 L 1060 262 L 570 262 L 570 270" marker-end="url(#arrow)"/>
+      <text class="edge-label" x="640" y="256">labeled transcript · gated on whisper_final</text>
 
       <!-- ROW 2: brain -->
-      <g class="node s5" transform="translate(390,270)">
+      <g class="node s6" transform="translate(390,270)">
         <rect class="node-rect brain" x="0" y="0" width="360" height="120" rx="60"/>
         <text class="node-tag brain" x="32" y="28">CORE · REASONING</text>
         <text class="node-title" x="32" y="60" style="font-size:22px">Claude Opus 4.7</text>
@@ -562,21 +588,21 @@
       </g>
 
       <!-- ROW 3: outputs -->
-      <g class="node s6" transform="translate(40,520)">
+      <g class="node s7" transform="translate(40,520)">
         <rect class="node-rect ext" x="0" y="0" width="280" height="86" rx="3"/>
         <text class="node-tag ext" x="14" y="20">05 · GROUNDING</text>
         <text class="node-title" x="14" y="44">Slack + Web research</text>
         <text class="node-sub" x="14" y="64">Internal Slack (MCP) · DuckDuckGo · fetch</text>
       </g>
 
-      <g class="node s7" transform="translate(450,520)">
+      <g class="node s8" transform="translate(450,520)">
         <rect class="node-rect ui" x="0" y="0" width="240" height="86" rx="3"/>
         <text class="node-tag ui" x="14" y="20">06 · LIVE UI</text>
         <text class="node-title" x="14" y="44">Browser sidebar</text>
         <text class="node-sub" x="14" y="64">Transcript + Q&amp;A cards</text>
       </g>
 
-      <g class="node s8" transform="translate(860,520)">
+      <g class="node s9" transform="translate(860,520)">
         <rect class="node-rect ext" x="0" y="0" width="240" height="86" rx="3"/>
         <text class="node-tag ext" x="14" y="20">07 · POST-MEETING</text>
         <text class="node-title" x="14" y="44">Google Docs</text>
@@ -642,6 +668,16 @@
     <article class="tool">
       <span class="num">03</span>
       <div>
+        <h3>mlx-whisper · WhisperWorker</h3>
+        <div class="where">Apple MLX · whisper-large-v3-turbo · async sidecar</div>
+        <p class="role">A second on-device STT pass. Apple's sidecar gives us live, low-latency draft text; this worker re-transcribes each finalized segment from a 60-second mic+system rolling buffer and broadcasts a <code>transcript_update</code> to upgrade the text in place. Question detection is gated on <code>whisper_final</code> so the model reasons over the upgraded text, not the draft. Drained before summary generation.</p>
+        <p class="why">Apple is fast but loose with proper nouns and product names; Whisper is slower but accurate. This combination gives a live transcript <em>and</em> a high-quality one — without making the user wait.</p>
+      </div>
+    </article>
+
+    <article class="tool">
+      <span class="num">04</span>
+      <div>
         <h3>Resemblyzer</h3>
         <div class="where">Python · CPU voice embeddings</div>
         <p class="role">Open-source voice-fingerprint model. Tags each segment with "Me" or "Speaker N" using a centroid-clustering approach.</p>
@@ -650,7 +686,7 @@
     </article>
 
     <article class="tool">
-      <span class="num">04</span>
+      <span class="num">05</span>
       <div>
         <h3>Claude Opus 4.7</h3>
         <div class="where">Salesforce AI Model Gateway · 4 prompts</div>
@@ -660,7 +696,7 @@
     </article>
 
     <article class="tool">
-      <span class="num">05</span>
+      <span class="num">06</span>
       <div>
         <h3>Slack + Web research</h3>
         <div class="where">Slack MCP · DuckDuckGo · page fetch</div>
@@ -670,7 +706,7 @@
     </article>
 
     <article class="tool">
-      <span class="num">06</span>
+      <span class="num">07</span>
       <div>
         <h3>FastAPI + WebSocket</h3>
         <div class="where">Python 3.13 · uvicorn · localhost:8765</div>
@@ -680,17 +716,17 @@
     </article>
 
     <article class="tool">
-      <span class="num">07</span>
+      <span class="num">08</span>
       <div>
         <h3>Browser sidebar</h3>
         <div class="where">Vanilla HTML / CSS / JS · second monitor</div>
-        <p class="role">Live transcript on the left, Q&amp;A cards with cited URLs on the right. Speakers are renameable inline as you identify them.</p>
+        <p class="role">Live transcript on the left, Q&amp;A cards with cited URLs on the right. Speakers are renameable inline as you identify them. Transcript lines stamped with <code>data-segment-id</code> so the Whisper worker can upgrade them in place.</p>
         <p class="why">Nothing for the user to install — just <code>localhost:8765</code>.</p>
       </div>
     </article>
 
     <article class="tool">
-      <span class="num">08</span>
+      <span class="num">09</span>
       <div>
         <h3>Google Docs export</h3>
         <div class="where">Claude MCP · google-adc server</div>
