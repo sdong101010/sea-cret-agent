@@ -298,6 +298,7 @@ async def transcription_loop():
             for seg in segments:
                 await broadcast({
                     "type": "transcript",
+                    "id": seg.id,
                     "text": seg.text,
                     "start_time": seg.start_time,
                     "end_time": seg.end_time,
@@ -323,6 +324,16 @@ async def transcription_loop():
                 # Snapshot + clear the unseen buffer atomically.
                 batch = unseen_segments
                 unseen_segments = []
+
+                # Wait for Whisper to upgrade these segments before running
+                # detection. Best-effort — segments still on Apple text after
+                # the timeout proceed as-is.
+                await transcriber.wait_whisper_final(
+                    batch, timeout=config.WHISPER_GATE_TIMEOUT_SECONDS,
+                )
+                # Reset the pause clock so we don't re-fire immediately on the
+                # next iteration against new segments that arrived during the wait.
+                last_speech_time = time.time()
 
                 new_text = _format_segments_for_prompt(batch)
                 primary_speaker = batch[-1].speaker if batch else "Unknown"
@@ -430,6 +441,9 @@ async def handle_client_message(msg: dict):
         speaker_id.reset()
         meeting_state.reset()
         unseen_segments.clear()
+        # Inject the live broadcast reference into the transcriber so the
+        # whisper worker can emit transcript_update messages.
+        transcriber._broadcast = broadcast
         await transcriber.initialize()
         audio_capture = AudioCapture(on_audio_chunk=on_audio_chunk)
         await audio_capture.start()
@@ -452,6 +466,11 @@ async def handle_client_message(msg: dict):
                 pass
         if audio_capture:
             await audio_capture.stop()
+
+        # Drain the Whisper worker queue before generating the summary so it
+        # sees upgraded text. Best-effort — un-upgraded segments retain Apple
+        # text if the flush times out.
+        await transcriber.flush_whisper(timeout=config.WHISPER_FLUSH_TIMEOUT_SECONDS)
 
         segments = transcriber.get_all_segments()
         questions = detector.get_all_questions()
