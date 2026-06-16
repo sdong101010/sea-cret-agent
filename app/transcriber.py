@@ -170,7 +170,13 @@ class Transcriber:
             seg.apple_text = seg.text
             duration = max(0.0, seg.end_time - seg.start_time)
             if self._whisper_worker is not None and duration >= config.WHISPER_MIN_SEGMENT_SECONDS:
-                self._whisper_worker.enqueue(seg)
+                # asyncio.Queue is not threadsafe; _read_stdout runs in an executor
+                # thread, so we must hop onto the asyncio loop to enqueue.
+                worker = self._whisper_worker  # capture so the closure is stable
+                if self._loop is not None:
+                    self._loop.call_soon_threadsafe(worker.enqueue, seg)
+                else:
+                    worker.enqueue(seg)
             else:
                 self._mark_segment_final_fastpath(seg)
             with self._pending_lock:
