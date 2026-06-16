@@ -68,10 +68,17 @@ class WhisperWorker:
             except Exception:
                 logger.exception("Whisper worker failed for segment %s", seg.id)
             finally:
+                # CONTRACT: only _loop sets whisper_final / signals the event,
+                # so the guarantee holds even when _process raises. Don't
+                # move these into _process.
                 seg.whisper_final = True
                 seg.whisper_event.set()
 
     async def _process(self, seg: "TranscriptSegment"):
+        """Re-transcribe one segment's audio with mlx-whisper. Mutates seg.text on
+        success and broadcasts a transcript_update. Does NOT set whisper_final or
+        signal the event — that's _loop's finally block's job (see CONTRACT).
+        """
         sr = config.AUDIO_SAMPLE_RATE
         # Atomic snapshot under the rolling lock — the audio callback thread
         # mutates _rolling_system and _total_processed concurrently.
