@@ -88,6 +88,10 @@ class Transcriber:
         # user's own voice).
         self._rolling_mic: np.ndarray = np.zeros(0, dtype=np.float32)
         self._rolling_system: np.ndarray = np.zeros(0, dtype=np.float32)
+        # The mixed (mic + system) buffer mirrors what we feed to the Apple
+        # sidecar — the Whisper worker re-transcribes from this so it sees the
+        # same signal the sidecar saw, not just BlackHole audio.
+        self._rolling_mixed: np.ndarray = np.zeros(0, dtype=np.float32)
         self._rolling_lock = threading.Lock()
 
         # Wall-clock origin for converting sidecar segment times into our
@@ -227,6 +231,9 @@ class Transcriber:
             self._rolling_system = np.concatenate([self._rolling_system, system])
             if len(self._rolling_system) > max_samples:
                 self._rolling_system = self._rolling_system[-max_samples:]
+            self._rolling_mixed = np.concatenate([self._rolling_mixed, mixed])
+            if len(self._rolling_mixed) > max_samples:
+                self._rolling_mixed = self._rolling_mixed[-max_samples:]
 
         self._total_processed += len(mixed) / config.AUDIO_SAMPLE_RATE
 
@@ -302,6 +309,7 @@ class Transcriber:
         with self._rolling_lock:
             self._rolling_mic = np.zeros(0, dtype=np.float32)
             self._rolling_system = np.zeros(0, dtype=np.float32)
+            self._rolling_mixed = np.zeros(0, dtype=np.float32)
         self._total_processed = 0.0
 
     def _mark_segment_final_fastpath(self, seg: TranscriptSegment):

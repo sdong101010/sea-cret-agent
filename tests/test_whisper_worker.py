@@ -25,7 +25,7 @@ async def test_worker_signals_event_on_disabled_or_short_segment():
 async def test_worker_loop_processes_segment_and_signals_event():
     t = Transcriber()
     # Pre-fill the rolling buffer with 5 seconds of fake audio.
-    t._rolling_system = np.zeros(5 * 16000, dtype=np.float32)
+    t._rolling_mixed = np.zeros(5 * 16000, dtype=np.float32)
     t._total_processed = 5.0
     broadcast = AsyncMock()
     w = WhisperWorker(t, broadcast)
@@ -56,7 +56,7 @@ async def test_worker_loop_processes_segment_and_signals_event():
 @pytest.mark.asyncio
 async def test_worker_loop_marks_final_even_on_exception():
     t = Transcriber()
-    t._rolling_system = np.zeros(5 * 16000, dtype=np.float32)
+    t._rolling_mixed = np.zeros(5 * 16000, dtype=np.float32)
     t._total_processed = 5.0
     broadcast = AsyncMock()
     w = WhisperWorker(t, broadcast)
@@ -87,7 +87,7 @@ async def test_worker_skips_segment_aged_out_of_buffer():
     t = Transcriber()
     # Buffer is 60s; segment claims start_time at 5s while total_processed is 100s.
     # So seg_start_in_buf = 5 - (100 - 60) = -35 → out of buffer.
-    t._rolling_system = np.zeros(60 * 16000, dtype=np.float32)
+    t._rolling_mixed = np.zeros(60 * 16000, dtype=np.float32)
     t._total_processed = 100.0
     broadcast = AsyncMock()
     w = WhisperWorker(t, broadcast)
