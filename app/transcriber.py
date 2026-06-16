@@ -23,6 +23,7 @@ from pathlib import Path
 import numpy as np
 
 import config
+from app.whisper_worker import WhisperWorker
 
 logger = logging.getLogger(__name__)
 
@@ -63,7 +64,12 @@ def _ensure_binary_built():
 
 
 class Transcriber:
-    def __init__(self):
+    def __init__(self, broadcast=None):
+        # Default: no-op coroutine. Real broadcast is wired in by main.py.
+        async def _noop_broadcast(_msg):
+            return
+        self._broadcast = broadcast or _noop_broadcast
+
         self._proc: subprocess.Popen | None = None
         self._stdout_task: asyncio.Task | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
@@ -96,12 +102,9 @@ class Transcriber:
         self._whisper_worker = None
 
     async def initialize(self):
-        """Build the sidecar if needed and spawn it."""
         self._loop = asyncio.get_running_loop()
         await asyncio.get_running_loop().run_in_executor(None, _ensure_binary_built)
 
-        # If a previous session left a sidecar running, tear it down first
-        # so we don't leak processes or feed audio to a stale instance.
         if self._proc is not None:
             self.shutdown()
 
@@ -118,6 +121,17 @@ class Transcriber:
         self._stdout_task = asyncio.create_task(self._read_stdout())
         asyncio.create_task(self._read_stderr())
         logger.info("Speech sidecar started (pid %d)", self._proc.pid)
+
+        if config.WHISPER_ENABLED:
+            try:
+                self._whisper_worker = WhisperWorker(self, self._broadcast)
+                await self._whisper_worker.initialize()
+            except Exception:
+                logger.exception("Failed to start WhisperWorker — falling back to Apple-only path")
+                self._whisper_worker = None
+        else:
+            logger.info("WHISPER_ENABLED=0 — running Apple-only transcription")
+            self._whisper_worker = None
 
     async def _read_stdout(self):
         """Drain JSONL from the sidecar's stdout into self._pending."""
@@ -150,6 +164,12 @@ class Transcriber:
                 start_time=float(obj.get("start", 0.0)),
                 end_time=float(obj.get("end", 0.0)),
             )
+            seg.apple_text = seg.text
+            duration = max(0.0, seg.end_time - seg.start_time)
+            if self._whisper_worker is not None and duration >= config.WHISPER_MIN_SEGMENT_SECONDS:
+                self._whisper_worker.enqueue(seg)
+            else:
+                self._mark_segment_final_fastpath(seg)
             with self._pending_lock:
                 self._pending.append(seg)
                 self._segments.append(seg)
@@ -273,6 +293,22 @@ class Transcriber:
             self._rolling_system = np.zeros(0, dtype=np.float32)
         self._total_processed = 0.0
 
+    def _mark_segment_final_fastpath(self, seg: TranscriptSegment):
+        """Skip the worker — mark the segment final so the detector never blocks.
+
+        Called when WhisperWorker is disabled OR the segment is too short to be
+        worth Whispering (Whisper hallucinates 'Thank you for watching' on near-
+        silent <1s clips, so we keep the Apple text instead).
+        """
+        seg.whisper_final = True
+        # Touching .whisper_event here would bind to whichever loop is running.
+        # _read_stdout runs inside the asyncio loop's executor thread, so we use
+        # call_soon_threadsafe to set the event in the main loop.
+        if self._loop is not None:
+            self._loop.call_soon_threadsafe(seg.whisper_event.set)
+        else:
+            seg.whisper_event.set()
+
     async def wait_whisper_final(self, segs: list["TranscriptSegment"], timeout: float):
         """Wait until every segment in `segs` has whisper_final=True, or `timeout` elapses.
 
@@ -299,7 +335,17 @@ class Transcriber:
         await self._whisper_worker.flush(timeout=timeout)
 
     def shutdown(self):
-        """Cleanly stop the sidecar process."""
+        if self._whisper_worker is not None:
+            try:
+                # We may be called from the stop-session path which is async; if a
+                # loop is running, schedule the shutdown coroutine. Otherwise this
+                # is best-effort cancellation.
+                loop = asyncio.get_event_loop()
+                if loop.is_running():
+                    asyncio.create_task(self._whisper_worker.shutdown())
+            except RuntimeError:
+                pass
+            self._whisper_worker = None
         if self._proc is None:
             return
         try:

@@ -74,3 +74,35 @@ async def test_wait_whisper_final_returns_on_timeout_without_raising():
     elapsed = time.monotonic() - start
     assert 0.08 <= elapsed <= 0.5
     assert seg.whisper_final is False
+
+
+@pytest.mark.asyncio
+async def test_initialize_skips_worker_when_disabled(monkeypatch):
+    from unittest.mock import MagicMock
+    from app.transcriber import Transcriber
+    import config
+
+    monkeypatch.setattr(config, "WHISPER_ENABLED", False)
+    t = Transcriber()
+    # Patch sidecar startup so we don't actually spawn the binary.
+    monkeypatch.setattr("app.transcriber._ensure_binary_built", lambda: None)
+    fake_proc = MagicMock()
+    fake_proc.pid = 1234
+    fake_proc.stdout.readline.return_value = b""
+    fake_proc.stderr.readline.return_value = b""
+    monkeypatch.setattr("app.transcriber.subprocess.Popen", lambda *a, **kw: fake_proc)
+    await t.initialize()
+    assert t._whisper_worker is None
+    t.shutdown()
+
+
+@pytest.mark.asyncio
+async def test_short_segment_is_marked_whisper_final_immediately():
+    from app.transcriber import Transcriber
+
+    t = Transcriber()
+    # No worker, no real proc — just exercise the helper.
+    seg = TranscriptSegment(text="yeah", start_time=0.0, end_time=0.5)
+    t._mark_segment_final_fastpath(seg)
+    assert seg.whisper_final is True
+    assert seg.whisper_event.is_set()
