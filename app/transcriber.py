@@ -72,6 +72,7 @@ class Transcriber:
 
         self._proc: subprocess.Popen | None = None
         self._stdout_task: asyncio.Task | None = None
+        self._stderr_task: asyncio.Task | None = None
         self._loop: asyncio.AbstractEventLoop | None = None
 
         # Pending finalized segments waiting to be polled by main.py.
@@ -119,7 +120,7 @@ class Transcriber:
 
         self._session_start = time.time()
         self._stdout_task = asyncio.create_task(self._read_stdout())
-        asyncio.create_task(self._read_stderr())
+        self._stderr_task = asyncio.create_task(self._read_stderr())
         logger.info("Speech sidecar started (pid %d)", self._proc.pid)
 
         if config.WHISPER_ENABLED:
@@ -135,10 +136,12 @@ class Transcriber:
 
     async def _read_stdout(self):
         """Drain JSONL from the sidecar's stdout into self._pending."""
-        assert self._proc and self._proc.stdout
+        if self._proc is None or self._proc.stdout is None:
+            return
         loop = asyncio.get_running_loop()
+        proc_stdout = self._proc.stdout
         while True:
-            line = await loop.run_in_executor(None, self._proc.stdout.readline)
+            line = await loop.run_in_executor(None, proc_stdout.readline)
             if not line:
                 logger.info("Speech sidecar stdout closed")
                 return
@@ -176,10 +179,12 @@ class Transcriber:
 
     async def _read_stderr(self):
         """Forward sidecar stderr to our logger."""
-        assert self._proc and self._proc.stderr
+        if self._proc is None or self._proc.stderr is None:
+            return
         loop = asyncio.get_running_loop()
+        proc_stderr = self._proc.stderr
         while True:
-            line = await loop.run_in_executor(None, self._proc.stderr.readline)
+            line = await loop.run_in_executor(None, proc_stderr.readline)
             if not line:
                 return
             logger.info("sidecar: %s", line.decode("utf-8", "replace").rstrip())
@@ -346,6 +351,15 @@ class Transcriber:
             except RuntimeError:
                 pass
             self._whisper_worker = None
+        # Cancel the stdout/stderr reader tasks so they don't crash with
+        # AssertionError when self._proc goes None below. shutdown is sync —
+        # we schedule cancellation on the running loop if available; otherwise
+        # the tasks were never started or the loop is gone (process exit).
+        for task_attr in ("_stdout_task", "_stderr_task"):
+            task = getattr(self, task_attr, None)
+            if task is not None and not task.done():
+                task.cancel()
+            setattr(self, task_attr, None)
         if self._proc is None:
             return
         try:
