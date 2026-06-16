@@ -85,6 +85,16 @@ function handleMessage(msg) {
       appendTranscript(msg);
       break;
 
+    case "transcript_update": {
+      const line = document.querySelector(
+        `.transcript-line[data-segment-id="${msg.id}"]`
+      );
+      if (!line) break;
+      const textEl = line.querySelector(".text");
+      if (textEl) textEl.textContent = msg.text;
+      break;
+    }
+
     case "speaker_renamed":
       applySpeakerRename(msg.old, msg.new);
       break;
@@ -142,6 +152,7 @@ function appendTranscript(msg) {
 
   const line = document.createElement("div");
   line.className = "transcript-line";
+  if (msg.id) line.dataset.segmentId = msg.id;
 
   const speaker = msg.speaker || "Unknown";
   if (speaker === "Me") {
