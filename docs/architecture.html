@@ -5,30 +5,29 @@
 <title>Sea-cret Agent — Architecture</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Sohne:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300..900;1,9..144,300..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:ital,opsz,wght@0,6..96,400..900;1,6..96,400..900&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
   :root {
-    --paper: #f5efe4;
-    --paper-deep: #ebe2d2;
-    --ink: #181612;
-    --ink-soft: #4a443c;
-    --ink-faint: #7d7567;
-    --rule: #d8cdb9;
-    --coral: #e8533a;
-    --coral-deep: #c63f28;
-    --ocean: #1f4659;
-    --moss: #4f6b3a;
-    --gold: #b9882c;
-    --plum: #6e3a4d;
-    --shadow: 0 1px 0 rgba(24, 22, 18, 0.04), 0 8px 24px -12px rgba(24, 22, 18, 0.08);
+    --paper: #0a0a0a;          /* page bg — jet black */
+    --paper-deep: #15140e;     /* panel surface — gunmetal warm */
+    --ink: #f4ecd6;            /* primary text — champagne */
+    --ink-soft: #cdc3a8;       /* secondary text — muted cream */
+    --ink-faint: #8a8268;      /* tertiary text — faint gold-cream */
+    --rule: #2a2820;           /* hairline divider */
+    --coral: #c8102e;          /* blood red — Bond accent */
+    --coral-deep: #9a0c23;     /* deeper red */
+    --ocean: #88a7c0;          /* steel blue — capture/audio in */
+    --moss: #c5a059;           /* gold — on-device / trust boundary */
+    --gold: #ead38e;           /* lighter gold — ui flourish */
+    --plum: #c08aa0;           /* dusty rose — external services */
+    --shadow: 0 1px 0 rgba(0, 0, 0, 0.4), 0 16px 40px -18px rgba(0, 0, 0, 0.7);
   }
   * { box-sizing: border-box; }
   html, body { margin: 0; padding: 0; }
   body {
     background:
-      radial-gradient(ellipse at 12% 8%, rgba(232, 83, 58, 0.06), transparent 45%),
-      radial-gradient(ellipse at 88% 95%, rgba(31, 70, 89, 0.05), transparent 50%),
+      radial-gradient(ellipse at 12% 8%, rgba(200, 16, 46, 0.10), transparent 50%),
+      radial-gradient(ellipse at 88% 95%, rgba(197, 160, 89, 0.08), transparent 55%),
       var(--paper);
     color: var(--ink);
     font-family: "Inter", -apple-system, sans-serif;
@@ -44,9 +43,9 @@
     inset: 0;
     pointer-events: none;
     z-index: 100;
-    opacity: 0.35;
-    mix-blend-mode: multiply;
-    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.09  0 0 0 0 0.08  0 0 0 0 0.06  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
+    opacity: 0.18;
+    mix-blend-mode: screen;
+    background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 0.96  0 0 0 0 0.92  0 0 0 0 0.84  0 0 0 0.06 0'/></filter><rect width='100%25' height='100%25' filter='url(%23n)'/></svg>");
   }
 
   .page { max-width: 1240px; margin: 0 auto; padding: 56px 48px 96px; position: relative; }
@@ -84,27 +83,39 @@
     margin-bottom: 48px;
   }
   h1 {
-    font-family: "Fraunces", serif;
-    font-variation-settings: "opsz" 144, "SOFT" 50;
-    font-weight: 380;
+    font-family: "Bodoni Moda", serif;
+    font-variation-settings: "opsz" 96;
+    font-weight: 500;
     font-size: clamp(64px, 8.4vw, 124px);
-    line-height: 0.92;
-    letter-spacing: -0.035em;
+    line-height: 0.94;
+    letter-spacing: -0.02em;
     margin: 0;
     color: var(--ink);
+    position: relative;
+    padding-bottom: 18px;
+  }
+  h1::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    bottom: 0;
+    width: 96px;
+    height: 1px;
+    background: var(--moss);
   }
   h1 em {
     font-style: italic;
-    font-variation-settings: "opsz" 144, "SOFT" 100;
-    font-weight: 360;
+    font-variation-settings: "opsz" 96;
+    font-weight: 500;
     color: var(--coral);
   }
   .deck {
-    font-family: "Fraunces", serif;
-    font-variation-settings: "opsz" 14;
+    font-family: "Bodoni Moda", serif;
+    font-variation-settings: "opsz" 11;
     font-weight: 400;
+    font-style: italic;
     font-size: 18px;
-    line-height: 1.5;
+    line-height: 1.55;
     color: var(--ink-soft);
     border-left: 2px solid var(--coral);
     padding: 4px 0 4px 20px;
@@ -140,7 +151,7 @@
   /* Diagram */
   .diagram-frame {
     background:
-      linear-gradient(180deg, rgba(255,255,255,0.5), rgba(255,255,255,0.15)),
+      linear-gradient(180deg, rgba(197, 160, 89, 0.04), rgba(0, 0, 0, 0)),
       var(--paper-deep);
     border: 1px solid var(--rule);
     border-radius: 4px;
@@ -149,6 +160,8 @@
     overflow: hidden;
     box-shadow: var(--shadow);
   }
+  .diagram-frame::after,
+  .diagram-frame::before { color: var(--moss); }
   .diagram-frame::before {
     content: "FIG. 01";
     position: absolute;
@@ -172,16 +185,16 @@
   svg.arch { width: 100%; height: auto; display: block; }
 
   /* Diagram type styles applied inside SVG */
-  .node-rect { fill: #fdfcf8; stroke-width: 1.5; }
+  .node-rect { fill: #1c1a14; stroke-width: 1.5; }
   .node-rect.capture { stroke: var(--ocean); }
   .node-rect.local   { stroke: var(--moss); }
-  .node-rect.brain   { stroke: var(--coral); stroke-width: 2.5; fill: #fff7f0; }
+  .node-rect.brain   { stroke: var(--coral); stroke-width: 2.5; fill: #2a1518; }
   .node-rect.ext     { stroke: var(--plum); }
   .node-rect.ui      { stroke: var(--gold); }
   .node-title {
-    font-family: "Fraunces", serif;
+    font-family: "Bodoni Moda", serif;
     font-variation-settings: "opsz" 18;
-    font-weight: 500;
+    font-weight: 600;
     font-size: 15px;
     fill: var(--ink);
   }
@@ -208,7 +221,7 @@
      anything outside it crosses the network. The label sits on the top edge
      and "punches through" it via paint-order stroke. */
   .container-rect {
-    fill: rgba(79, 107, 58, 0.035);
+    fill: rgba(197, 160, 89, 0.04);
     stroke: var(--moss);
     stroke-width: 1.2;
     stroke-dasharray: 5 4;
@@ -227,9 +240,10 @@
     stroke-linejoin: round;
   }
   .container-sub {
-    font-family: "Fraunces", serif;
+    font-family: "Bodoni Moda", serif;
     font-style: italic;
-    font-variation-settings: "opsz" 14;
+    font-variation-settings: "opsz" 11;
+    font-weight: 500;
     font-size: 12px;
     fill: var(--ink-faint);
     paint-order: stroke;
@@ -251,7 +265,7 @@
 
   .edge { fill: none; stroke: var(--ink-soft); stroke-width: 1.4; }
   .edge.dashed { stroke-dasharray: 4 4; stroke: var(--ink-faint); }
-  .edge.coral  { stroke: var(--coral); stroke-width: 1.6; }
+  .edge.coral  { stroke: var(--coral); stroke-width: 1.8; filter: drop-shadow(0 0 4px rgba(200, 16, 46, 0.35)); }
   .edge-label {
     font-family: "JetBrains Mono", monospace;
     font-size: 10.5px;
@@ -263,11 +277,11 @@
     stroke-linejoin: round;
   }
   .edge-num {
-    font-family: "Fraunces", serif;
+    font-family: "Bodoni Moda", serif;
     font-style: italic;
-    font-weight: 500;
-    font-size: 14px;
-    fill: var(--coral-deep);
+    font-weight: 700;
+    font-size: 16px;
+    fill: var(--coral);
     paint-order: stroke;
     stroke: var(--paper-deep);
     stroke-width: 4px;
@@ -295,9 +309,9 @@
     height: 14px;
     border: 1.5px solid;
     border-radius: 2px;
-    background: #fdfcf8;
+    background: #1c1a14;
   }
-  .legend i.brain { background: #fff7f0; border-width: 2.5px; }
+  .legend i.brain { background: #2a1518; border-width: 2.5px; }
 
   /* Tools section: editorial 2-column, asymmetric */
   .tools {
@@ -317,22 +331,22 @@
     position: relative;
   }
   .tool .num {
-    font-family: "Fraunces", serif;
+    font-family: "Bodoni Moda", serif;
     font-style: italic;
-    font-weight: 400;
+    font-weight: 600;
     font-size: 22px;
     color: var(--coral);
     line-height: 1;
     padding-top: 4px;
   }
   .tool h3 {
-    font-family: "Fraunces", serif;
-    font-variation-settings: "opsz" 30;
-    font-weight: 500;
+    font-family: "Bodoni Moda", serif;
+    font-variation-settings: "opsz" 28;
+    font-weight: 600;
     font-size: 22px;
-    line-height: 1.1;
+    line-height: 1.15;
     margin: 0 0 4px;
-    letter-spacing: -0.012em;
+    letter-spacing: -0.005em;
   }
   .tool .where {
     font-family: "JetBrains Mono", monospace;
@@ -349,11 +363,12 @@
     margin: 0 0 10px;
   }
   .tool .why {
-    font-family: "Fraunces", serif;
+    font-family: "Bodoni Moda", serif;
     font-style: italic;
-    font-variation-settings: "opsz" 14;
+    font-variation-settings: "opsz" 11;
+    font-weight: 500;
     font-size: 14px;
-    line-height: 1.5;
+    line-height: 1.55;
     color: var(--ink-soft);
     margin: 0;
   }
@@ -368,15 +383,19 @@
     margin-right: 4px;
   }
 
-  /* Pitch block */
+  /* Pitch block — gun-barrel sequence: deep red field, gold hairline, champagne text */
   .pitch {
     margin-top: 56px;
     padding: 36px 40px 40px;
-    background: var(--ink);
-    color: var(--paper);
+    background:
+      radial-gradient(ellipse at 80% 20%, rgba(234, 211, 142, 0.10), transparent 55%),
+      linear-gradient(180deg, #1a0708 0%, #0a0303 100%);
+    color: var(--ink);
+    border: 1px solid var(--moss);
     border-radius: 4px;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 16px 48px -20px rgba(200, 16, 46, 0.45);
   }
   .pitch::before {
     content: "30-SECOND PITCH";
@@ -386,20 +405,20 @@
     font-family: "JetBrains Mono", monospace;
     font-size: 10px;
     letter-spacing: 0.22em;
-    color: var(--coral);
+    color: var(--moss);
   }
   .pitch p {
-    font-family: "Fraunces", serif;
-    font-variation-settings: "opsz" 30;
-    font-weight: 380;
+    font-family: "Bodoni Moda", serif;
+    font-variation-settings: "opsz" 28;
+    font-weight: 500;
     font-size: 22px;
-    line-height: 1.45;
+    line-height: 1.5;
     margin: 22px 0 0;
-    letter-spacing: -0.005em;
+    letter-spacing: -0.002em;
   }
   .pitch p em {
     font-style: italic;
-    color: #ffd9ce;
+    color: var(--gold);
   }
   .pitch p strong {
     font-weight: 500;
@@ -472,8 +491,9 @@
 <div class="page">
 
   <div class="eyebrow">
-    <span><span class="dot"></span>SEA-CRET AGENT / INTERNAL TECHNICAL BRIEF</span>
+    <span><span class="dot"></span>SEA-CRET AGENT / FOR YOUR EYES ONLY</span>
     <span class="right">
+      <span>DOSSIER · 007</span>
       <span>v 0.2 · JUN 2026</span>
       <span>1 of 1</span>
     </span>
@@ -490,13 +510,13 @@
     <svg class="arch" viewBox="0 0 1140 700" xmlns="http://www.w3.org/2000/svg">
       <defs>
         <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#4a443c"/>
+          <path d="M0,0 L10,5 L0,10 z" fill="#cdc3a8"/>
         </marker>
         <marker id="arrow-faint" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#7d7567"/>
+          <path d="M0,0 L10,5 L0,10 z" fill="#8a8268"/>
         </marker>
         <marker id="arrow-coral" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-          <path d="M0,0 L10,5 L0,10 z" fill="#e8533a"/>
+          <path d="M0,0 L10,5 L0,10 z" fill="#c8102e"/>
         </marker>
       </defs>
 
@@ -584,7 +604,7 @@
         <text class="node-tag brain" x="32" y="28">CORE · REASONING</text>
         <text class="node-title" x="32" y="60" style="font-size:22px">Claude Opus 4.7</text>
         <text class="node-sub" x="32" y="84" style="font-size:13px">via Salesforce AI Model Gateway</text>
-        <text class="node-sub" x="32" y="104" style="font-style:italic;font-family:Fraunces,serif">four prompts · one model</text>
+        <text class="node-sub" x="32" y="104" style="font-style:italic;font-family:'Bodoni Moda',serif">four prompts · one model</text>
       </g>
 
       <!-- ROW 3: outputs -->
