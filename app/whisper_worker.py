@@ -83,7 +83,7 @@ class WhisperWorker:
         # Atomic snapshot under the rolling lock — the audio callback thread
         # mutates the rolling buffers and _total_processed concurrently.
         # Use the MIXED buffer (mic + system), same signal the Apple sidecar
-        # gets. Reading _rolling_system alone is BlackHole-only and goes silent
+        # gets. Reading _rolling_system alone is system-audio-only and goes silent
         # when the user is speaking into the mic with nothing playing back,
         # which makes Whisper hallucinate ("you" / "Thank you for watching").
         with self._transcriber._rolling_lock:

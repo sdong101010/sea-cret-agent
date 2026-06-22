@@ -18,7 +18,7 @@ DATA_DIR.mkdir(exist_ok=True)
 AUDIO_SAMPLE_RATE = 16000
 AUDIO_CHANNELS = 1
 AUDIO_CHUNK_SECONDS = 2
-AUDIO_DEVICE_NAME = os.getenv("AUDIO_DEVICE", "BlackHole")
+AUDIO_DEVICE_NAME = os.getenv("AUDIO_DEVICE", "Background Music")
 MIC_DEVICE_NAME = os.getenv("MIC_DEVICE", "")
 # Linear gain applied to the mic before it's mixed into the transcription
 # stream. Built-in laptop mics often capture at very low levels (RMS < 0.01),

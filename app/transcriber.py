@@ -2,7 +2,7 @@
 
 The Swift binary at bin/speech_sidecar reads 16-bit PCM @ 16kHz on stdin and
 emits one JSONL line per recognized segment on stdout. We pipe the same
-float32 audio buffers we capture from BlackHole into it (converted to Int16)
+float32 audio buffers we capture from Background Music into it (converted to Int16)
 and parse the streamed results into TranscriptSegment objects.
 
 A rolling 60-second audio buffer is kept so the speaker identifier can slice
@@ -90,7 +90,7 @@ class Transcriber:
         self._rolling_system: np.ndarray = np.zeros(0, dtype=np.float32)
         # The mixed (mic + system) buffer mirrors what we feed to the Apple
         # sidecar — the Whisper worker re-transcribes from this so it sees the
-        # same signal the sidecar saw, not just BlackHole audio.
+        # same signal the sidecar saw, not just system audio alone.
         self._rolling_mixed: np.ndarray = np.zeros(0, dtype=np.float32)
         self._rolling_lock = threading.Lock()
 

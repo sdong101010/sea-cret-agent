@@ -551,7 +551,7 @@ function exitPastSession() {
   sessionBtn.disabled = false;
   sessionBtn.title = "";
   clearFeeds();
-  transcriptFeed.innerHTML = '<div class="empty-state"><p>Waiting for audio...</p><p class="hint">Start a session, then speak or play meeting audio through BlackHole.</p></div>';
+  transcriptFeed.innerHTML = '<div class="empty-state"><p>Waiting for audio...</p><p class="hint">Start a session, then speak or play meeting audio through Background Music.</p></div>';
   answersFeed.innerHTML = '<div class="empty-state"><p>No questions detected yet</p><p class="hint">Questions from the customer will appear here with suggested answers.</p></div>';
 }
 

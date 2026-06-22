@@ -1,4 +1,4 @@
-"""Capture system audio (BlackHole) and the local microphone.
+"""Capture system audio (Background Music) and the local microphone.
 
 The callback receives three parallel streams per chunk:
 

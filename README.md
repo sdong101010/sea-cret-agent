@@ -4,7 +4,7 @@ A local meeting assistant that captures system audio from MS Teams / Google Meet
 
 ## How It Works
 
-1. **BlackHole** captures system audio (what you hear in the meeting)
+1. **Background Music** captures system audio (what you hear in the meeting) while still letting the system volume slider and F11/F12 keys work normally
 2. **Apple SpeechAnalyzer** (macOS 26+) transcribes speech to text on-device via a Swift sidecar binary
 3. **Claude** detects customer questions from the transcript
 4. **Web search** finds relevant Salesforce docs and pages
@@ -13,18 +13,17 @@ A local meeting assistant that captures system audio from MS Teams / Google Meet
 
 ## Prerequisites
 
-### 1. BlackHole (virtual audio device)
+### 1. Background Music (virtual audio device)
 
 ```bash
-brew install blackhole-2ch
+brew install --cask background-music
 ```
 
-Then open **Audio MIDI Setup** (Spotlight → "Audio MIDI Setup"):
-1. Click **+** → **Create Multi-Output Device**
-2. Check both your real speakers/headphones AND **BlackHole 2ch**
-3. Set this Multi-Output Device as your system output (System Settings → Sound → Output)
+After install, launch the app once (`open -a "Background Music"`) and:
+1. Set **Background Music** as your system output (System Settings → Sound → Output)
+2. Click the Background Music menu-bar icon → **Preferences → Output Device → your real speakers/headphones**
 
-This lets you hear the meeting audio AND capture it simultaneously.
+This lets you hear the meeting audio AND capture it simultaneously, while keeping the system volume slider and F11/F12 keys working — unlike a BlackHole + Multi-Output Device setup, which greys out the volume controls.
 
 ### 2. PortAudio (required by sounddevice)
 
@@ -56,7 +55,7 @@ pip install -r requirements.txt
 cp .env.example .env
 ```
 
-To find your BlackHole device name:
+To find your Background Music device name:
 ```bash
 python -m sounddevice
 ```
@@ -85,6 +84,6 @@ Edit `.env` to customize:
 | `ANTHROPIC_AUTH_TOKEN` | (inherited) | Bearer token for the Salesforce AI Model Gateway |
 | `ANTHROPIC_BEDROCK_BASE_URL` | (inherited) | Gateway base URL |
 | `ANTHROPIC_MODEL` | `claude-opus-4-7` | Claude model for detection, answers, summaries |
-| `AUDIO_DEVICE` | `BlackHole` | Audio input device name |
+| `AUDIO_DEVICE` | `Background Music` | Audio input device name |
 | `MIC_DEVICE` | (auto) | Microphone device for voice calibration |
 | `QUESTION_CONFIDENCE_THRESHOLD` | `0.6` | Min confidence to surface a question (0.0-1.0) |
