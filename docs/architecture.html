@@ -533,7 +533,7 @@
       </g>
 
       <!-- ROW 1: capture. The audio node now shows two parallel streams
-           (mic + system) feeding into BlackHole's mixer. -->
+           (mic + system) feeding into Background Music's mixer. -->
       <g class="node s1" transform="translate(40,40)">
         <rect class="node-rect capture" x="0" y="0" width="200" height="78" rx="3"/>
         <text class="node-tag capture" x="14" y="20">01 · INPUT</text>
@@ -548,8 +548,8 @@
       <g class="node s2" transform="translate(290,40)">
         <rect class="node-rect capture" x="0" y="0" width="200" height="78" rx="3"/>
         <text class="node-tag capture" x="14" y="20">02 · ROUTING</text>
-        <text class="node-title" x="14" y="44">BlackHole</text>
-        <text class="node-sub" x="14" y="62">Virtual audio cable</text>
+        <text class="node-title" x="14" y="44">Background Music</text>
+        <text class="node-sub" x="14" y="62">Virtual audio device</text>
       </g>
 
       <g class="node s3" transform="translate(540,40)">
@@ -583,7 +583,7 @@
         <text class="node-sub" x="14" y="62">Re-transcribes finalized segments · MLX</text>
       </g>
 
-      <!-- BlackHole → Whisper: the mixed (mic + system) 60s rolling buffer the
+      <!-- Background Music → Whisper: the mixed (mic + system) 60s rolling buffer the
            worker slices from. Same signal Apple sees. -->
       <path class="edge dashed" d="M 390 118 L 390 199 L 640 199" marker-end="url(#arrow-faint)"/>
       <text class="edge-label" x="404" y="193">60s mixed buffer · mic + system</text>
@@ -668,9 +668,9 @@
     <article class="tool">
       <span class="num">01</span>
       <div>
-        <h3>BlackHole</h3>
+        <h3>Background Music</h3>
         <div class="where">Open-source · macOS · brew install</div>
-        <p class="role">A free virtual audio cable that splits system audio so the laptop can hear the meeting <em>and</em> you still hear it through your headphones.</p>
+        <p class="role">A free virtual audio device that captures system audio on its input side while forwarding it to your real speakers — so the laptop can hear the meeting <em>and</em> you still hear it. Bonus: keeps the system volume slider and F11/F12 keys working, unlike a Multi-Output Device.</p>
         <p class="why">Without it, no Teams or Meet call can be captured at all.</p>
       </div>
     </article>
